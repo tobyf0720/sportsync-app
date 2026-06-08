@@ -803,7 +803,7 @@ function SocialPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
     { id: 1, user: 'Toby Furlong', handle: '@tobyfurlong', sport: 'Football', sportColor: '#22c55e', emoji: '⚽', time: 'Just now', caption: 'Banged in 2 goals tonight! We won 4-2 in 5-a-side. Buzzing.', likes: 24, comments: 8, hasMedia: true, mediaBg: 'linear-gradient(135deg, #1a3a1a, #0a1a0a)' },
     { id: 2, user: 'Marcus R.', handle: '@marcusr', sport: 'Gym', sportColor: '#a855f7', emoji: '🏋️', time: '5 hours ago', caption: 'New PB on deadlift today - 140kg! Feeling strong.', likes: 42, comments: 12, hasMedia: true, mediaBg: 'linear-gradient(135deg, #1a0a2e, #0a0a1a)' },
     { id: 3, user: 'Sarah K.', handle: '@sarahk', sport: 'Running', sportColor: '#06b6d4', emoji: '🏃', time: 'Yesterday', caption: 'Sub-25 min 5K! Training is paying off. Who wants to race next week?', likes: 31, comments: 6, hasMedia: true, mediaBg: 'linear-gradient(135deg, #0a1a2e, #0a0a1a)' },
-    { id: 4, user: 'Jake M.', handle: '@jakем', sport: 'Football', sportColor: '#22c55e', emoji: '⚽', time: '2 days ago', caption: 'Sunday league season starts next week. Cannot wait. The lads are looking sharp in training.', likes: 18, comments: 4, hasMedia: false, mediaBg: '' },
+    { id: 4, user: 'Jake M.', handle: '@jakем', sport: 'Football', sportColor: '#22c55e', emoji: '⚽', time: '2 days ago', caption: `Sunday league season starts next week. Cannot wait. The lads are looking sharp in training.`, likes: 18, comments: 4, hasMedia: false, mediaBg: '' },
   ]
 
   const toggleLike = (id: number) => {
