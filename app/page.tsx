@@ -19,7 +19,7 @@ const suggestedWorkouts = [
 ];
 
 function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
-  const userPosition = 'Forward'
+  const userPosition: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward' = 'Forward'
   const [sessionType, setSessionType] = useState('')
   const [matchType, setMatchType] = useState('')
   const [trainingContext, setTrainingContext] = useState('')
