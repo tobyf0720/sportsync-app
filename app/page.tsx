@@ -1747,45 +1747,65 @@ function TrackPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   )
 }
 function SportsPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
-  const [activeNav, setActiveNavLocal] = useState('sports')
-  const upcomingFixtures = [
-    { sport: 'Football', type: '5-a-side', date: 'Thu 12 Jun', time: '7pm', color: '#22c55e' },
-    { sport: 'Tennis', type: 'Singles', date: 'Sat 14 Jun', time: '10am', color: '#eab308' },
-  ]
+  const [activeNavLocal, setActiveNavLocal] = useState('sports')
+  const [selectedSport, setSelectedSport] = useState('Football')
+  const [articles, setArticles] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
-  const recentResults = [
-    { sport: 'Football', result: 'win', scoreFor: 4, scoreAgainst: 2, color: '#22c55e' },
-    { sport: 'Tennis', result: 'win', scoreFor: '6-3', scoreAgainst: '7-5', color: '#eab308' },
-    { sport: 'Gym', result: 'win', scoreFor: 'PR', scoreAgainst: '', color: '#a855f7' },
-  ]
+  const sportQueries: Record<string, string> = {
+    Football: 'football soccer',
+    Gym: 'gym fitness weightlifting',
+    Tennis: 'tennis',
+    Running: 'running marathon athletics',
+    Swimming: 'swimming',
+    Basketball: 'basketball NBA',
+  }
+
+  const fetchNews = async (sport: string) => {
+    setLoading(true)
+    setArticles([])
+    try {
+      const query = sportQueries[sport]
+      const res = await fetch(
+        `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=10&apikey=09ee950ba2fbd68e806fb73fbb6ca94d`
+      )
+      const data = await res.json()
+      setArticles(data.articles?.filter((a: any) => a.title && a.image) || [])
+    } catch (e) {
+      setArticles([])
+    }
+    setLoading(false)
+  }
+
+  useState(() => { fetchNews(selectedSport) })
+
+  const handleSportSelect = (sport: string) => {
+    setSelectedSport(sport)
+    fetchNews(sport)
+  }
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000)
+    if (diff < 60) return `${diff}m ago`
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`
+    return `${Math.floor(diff / 1440)}d ago`
+  }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0a0a0f',
-      color: 'white',
-      fontFamily: 'system-ui, sans-serif',
-      maxWidth: '430px',
-      margin: '0 auto',
-      position: 'relative',
-    }}>
-      <div style={{
-        position: 'fixed', top: '-100px', right: '-100px',
-        width: '300px', height: '300px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
       <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh' }}>
-
-        <div style={{ padding: '50px 24px 24px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: '800', margin: 0 }}>Sports</h1>
+        <div style={{ padding: '50px 24px 20px' }}>
+          <h1 style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 4px' }}>Sports News</h1>
+          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Latest from your sports</p>
         </div>
 
-        <div style={{ padding: '0 24px 32px' }}>
+        {/* Sport Selector */}
+        <div style={{ padding: '0 24px 24px' }}>
           <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px' }}>
             {sports.map((sport) => (
-              <div key={sport.name} style={{
+              <div key={sport.name} onClick={() => sport.available && handleSportSelect(sport.name)} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px',
                 cursor: sport.available ? 'pointer' : 'default',
                 opacity: sport.available ? 1 : 0.4,
@@ -1796,109 +1816,72 @@ function SportsPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
                   border: `2.5px solid ${sport.color}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '28px',
-                  boxShadow: sport.available ? `0 0 16px ${sport.color}50` : 'none',
-                  background: '#13131f',
+                  background: selectedSport === sport.name ? `${sport.color}25` : '#13131f',
+                  boxShadow: selectedSport === sport.name ? `0 0 20px ${sport.color}60` : sport.available ? `0 0 12px ${sport.color}30` : 'none',
+                  transition: 'all 0.2s',
                 }}>
                   {sport.emoji}
                 </div>
-                <span style={{ fontSize: '11px', color: '#aaa', fontWeight: '600' }}>{sport.name}</span>
+                <span style={{ fontSize: '11px', color: selectedSport === sport.name ? 'white' : '#aaa', fontWeight: '600' }}>{sport.name}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ padding: '0 24px 28px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '14px' }}>Upcoming Games</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {upcomingFixtures.map((fixture, i) => (
-              <div key={i} style={{
-                background: '#13131f',
-                border: '1px solid #1e1e30',
-                borderRadius: '14px',
-                padding: '16px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-              }}>
-                <div style={{
-                  width: '10px', height: '10px', borderRadius: '50%',
-                  backgroundColor: fixture.color, flexShrink: 0,
-                  boxShadow: `0 0 8px ${fixture.color}`,
-                }} />
-                <span style={{ fontSize: '14px', fontWeight: '600' }}>
-                  {fixture.type} {fixture.sport}
-                </span>
-                <span style={{ color: '#555', fontSize: '13px', marginLeft: 'auto' }}>
-                  {fixture.date} | {fixture.time}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
+        {/* News Feed */}
         <div style={{ padding: '0 24px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '14px' }}>Recent Results</h2>
-          <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
-            {recentResults.map((result, i) => (
-              <div key={i} style={{
-                minWidth: '140px',
-                background: '#13131f',
-                border: '1px solid #1e1e30',
-                borderRadius: '16px',
-                padding: '16px',
-                flexShrink: 0,
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', color: '#aaa', fontWeight: '600' }}>{result.sport}</span>
-                  <span style={{
-                    background: result.result === 'win' ? '#22c55e' : result.result === 'loss' ? '#ef4444' : '#f59e0b',
-                    color: 'white', fontSize: '10px', fontWeight: '800',
-                    padding: '3px 8px', borderRadius: '20px',
-                  }}>
-                    {result.result.toUpperCase()}
-                  </span>
-                </div>
-                <div style={{ fontSize: '28px', fontWeight: '800', color: 'white' }}>
-                  {result.scoreFor}{result.scoreAgainst ? `-${result.scoreAgainst}` : ''}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          {loading && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {[1,2,3].map((i) => (
+                <div key={i} style={{ background: '#13131f', borderRadius: '16px', height: '200px', opacity: 0.5, animation: 'pulse 1.5s infinite' }} />
+              ))}
+            </div>
+          )}
 
+          {!loading && articles.length === 0 && (
+            <p style={{ color: '#444', textAlign: 'center', marginTop: '40px' }}>No articles found</p>
+          )}
+
+          {!loading && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {articles.map((article, i) => (
+                <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', overflow: 'hidden', cursor: 'pointer' }}>
+                  {article.image && (
+  <div style={{ width: '100%', height: '180px', overflow: 'hidden' }}>
+    <img src={article.image} alt={article.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e: any) => e.target.style.display = 'none'} />
+  </div>
+                    )}
+                    <div style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', color: sports.find(s => s.name === selectedSport)?.color || '#a855f7', fontWeight: '700', background: `${sports.find(s => s.name === selectedSport)?.color}20`, padding: '3px 8px', borderRadius: '20px' }}>{selectedSport}</span>
+                        <span style={{ fontSize: '11px', color: '#555' }}>{article.source?.name}</span>
+                        <span style={{ fontSize: '11px', color: '#555', marginLeft: 'auto' }}>{timeAgo(article.publishedAt)}</span>
+                      </div>
+                      <div style={{ fontWeight: '700', fontSize: '14px', lineHeight: '1.4', color: 'white' }}>{article.title}</div>
+                      {article.description && (
+                        <div style={{ color: '#666', fontSize: '12px', marginTop: '6px', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.description}</div>
+                      )}
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div style={{
-        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: '430px',
-        background: '#0d0d1a', borderTop: '1px solid #1e1e30',
-        display: 'flex', justifyContent: 'space-around',
-        padding: '12px 0 20px', zIndex: 100,
-      }}>
-        {[
-          { id: 'home', label: 'Home', emoji: '🏠' },
-          { id: 'sports', label: 'Sports', emoji: '🏅' },
-          { id: 'track', label: 'Track', emoji: '📈' },
-          { id: 'social', label: 'Social', emoji: '👥' },
-          { id: 'profile', label: 'Profile', emoji: '👤' },
-        ].map((item) => (
-          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{
-            background: 'none', border: 'none',
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: '4px', cursor: 'pointer', padding: '4px 12px',
-          }}>
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '430px', background: '#0d0d1a', borderTop: '1px solid #1e1e30', display: 'flex', justifyContent: 'space-around', padding: '12px 0 20px', zIndex: 100 }}>
+        {[{ id: 'home', label: 'Home', emoji: '🏠' }, { id: 'sports', label: 'Sports', emoji: '🏅' }, { id: 'track', label: 'Track', emoji: '📈' }, { id: 'social', label: 'Social', emoji: '👥' }, { id: 'profile', label: 'Profile', emoji: '👤' }].map((item) => (
+          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
             <span style={{ fontSize: '20px' }}>{item.emoji}</span>
-            <span style={{
-              fontSize: '10px', fontWeight: '600',
-              color: activeNav === item.id ? '#a855f7' : '#555',
-            }}>{item.label}</span>
+            <span style={{ fontSize: '10px', fontWeight: '600', color: activeNavLocal === item.id ? '#a855f7' : '#555' }}>{item.label}</span>
           </button>
         ))}
       </div>
     </div>
   )
 }
-
 export default function Home() {
   const [activeNav, setActiveNav] = useState('home')
 const [activeSport, setActiveSport] = useState<string | null>(null);
