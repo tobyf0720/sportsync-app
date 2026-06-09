@@ -207,7 +207,7 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   )
 }
 
-function LogTennisSession({ setActiveNav, tennisSessions, setTennisSessions }: { setActiveNav: (nav: string) => void, tennisSessions: any[], setTennisSessions: any }) {
+function LogTennisSession({ setActiveNav, tennisSessions, setTennisSessions, addSocialPost }: any) {
   const [sessionType, setSessionType] = useState('')
   const [duration, setDuration] = useState('')
   const [focus, setFocus] = useState('')
@@ -233,10 +233,17 @@ function LogTennisSession({ setActiveNav, tennisSessions, setTennisSessions }: {
     }
   
     setTennisSessions([newSession, ...tennisSessions])
+    addSocialPost({
+      sport: 'Tennis',
+      sportColor: '#eab308',
+      emoji: '🎾',
+      caption: `Logged a ${sessionType || 'tennis session'} focused on ${focus || 'training'} — ${duration || 0} mins, ${serves || 0} serves and ${forehands || 0} forehands.`
+    })
   
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
+  
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
@@ -1089,7 +1096,488 @@ function TennisDrillDetail({ category, setActiveNav }: { category: string, setAc
     </div>
   )
 }
-function LogRun({ setActiveNav, runningSessions, setRunningSessions, runningPRs, setRunningPRs }: any) {
+function LogSwim({ setActiveNav, swimmingSessions, setSwimmingSessions, swimmingPRs, setSwimmingPRs, addSocialPost }: any) {
+  const [swimType, setSwimType] = useState('')
+  const [stroke, setStroke] = useState('')
+  const [poolLength, setPoolLength] = useState('25')
+  const [distance, setDistance] = useState('')
+  const [time, setTime] = useState('')
+  const [effort, setEffort] = useState('')
+  const [notes, setNotes] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  const calculatePace = () => {
+    const d = parseFloat(distance)
+    const t = parseFloat(time)
+    if (!d || !t) return '0:00/100m'
+    const pace = t / (d / 100)
+    const mins = Math.floor(pace)
+    const secs = Math.round((pace - mins) * 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}/100m`
+  }
+
+  const calculateLengths = () => {
+    const d = parseFloat(distance)
+    const p = parseFloat(poolLength)
+    if (!d || !p) return 0
+    return Math.round(d / p)
+  }
+
+  const handleSave = () => {
+    const d = parseFloat(distance) || 0
+    const t = parseFloat(time) || 0
+    const pace = calculatePace()
+
+    const newSwim = {
+      id: Date.now(),
+      swimType,
+      stroke,
+      poolLength: parseFloat(poolLength) || 25,
+      distance: d,
+      time: t,
+      pace,
+      lengths: calculateLengths(),
+      effort,
+      notes,
+      date: 'Today'
+    }
+
+    setSwimmingSessions([newSwim, ...swimmingSessions])
+    addSocialPost({
+      sport: 'Swimming',
+      sportColor: '#3b82f6',
+      emoji: '🏊',
+      caption: `Logged a ${d}m ${stroke || 'swim'} session — ${t} mins, ${calculateLengths()} lengths at ${pace}.`
+    })
+
+    const newPRs = [...swimmingPRs]
+
+    const checkPR = (label: string, targetDistance: number) => {
+      if (d >= targetDistance) {
+        const existing = newPRs.find((pr: any) => pr.label === label)
+        if (!existing || t < existing.time) {
+          if (existing) {
+            existing.time = t
+            existing.pace = pace
+            existing.date = 'Today'
+          } else {
+            newPRs.push({ label, distance: targetDistance, time: t, pace, date: 'Today' })
+          }
+        }
+      }
+    }
+
+    checkPR('100m', 100)
+    checkPR('400m', 400)
+    checkPR('1500m', 1500)
+
+    setSwimmingPRs(newPRs)
+
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('swimming-hub')} style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Swim</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 28px' }}>Track distance, stroke, pace and lengths</p>
+
+        <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>SWIM TYPE</label>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+          {['Technique', 'Endurance', 'Sprint', 'Recovery', 'Open Water'].map((type) => (
+            <button key={type} onClick={() => setSwimType(type)} style={{ background: swimType === type ? '#3b82f620' : '#13131f', border: `1.5px solid ${swimType === type ? '#3b82f6' : '#1e1e30'}`, borderRadius: '10px', color: swimType === type ? '#3b82f6' : '#666', padding: '10px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>{type}</button>
+          ))}
+        </div>
+
+        {swimType && (
+          <>
+            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>MAIN STROKE</label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+              {['Freestyle', 'Breaststroke', 'Backstroke', 'Butterfly', 'Mixed'].map((s) => (
+                <button key={s} onClick={() => setStroke(s)} style={{ background: stroke === s ? '#06b6d420' : '#13131f', border: `1.5px solid ${stroke === s ? '#06b6d4' : '#1e1e30'}`, borderRadius: '20px', color: stroke === s ? '#06b6d4' : '#666', padding: '7px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{s}</button>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+              <div>
+                <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '8px' }}>DISTANCE M</label>
+                <input value={distance} onChange={(e) => setDistance(e.target.value)} placeholder="1000" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '8px' }}>TIME MINS</label>
+                <input value={time} onChange={(e) => setTime(e.target.value)} placeholder="25" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', boxSizing: 'border-box' }} />
+              </div>
+            </div>
+
+            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '8px' }}>POOL LENGTH</label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+              {['25', '33', '50'].map((p) => (
+                <button key={p} onClick={() => setPoolLength(p)} style={{ background: poolLength === p ? '#22c55e20' : '#13131f', border: `1.5px solid ${poolLength === p ? '#22c55e' : '#1e1e30'}`, borderRadius: '20px', color: poolLength === p ? '#22c55e' : '#666', padding: '7px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{p}m</button>
+              ))}
+            </div>
+
+            <div style={{ background: '#13131f', border: '1px solid #3b82f625', borderLeft: '4px solid #3b82f6', borderRadius: '14px', padding: '16px', marginBottom: '20px' }}>
+              <div style={{ color: '#666', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>CALCULATED</div>
+              <div style={{ color: '#3b82f6', fontSize: '24px', fontWeight: '900' }}>{calculatePace()}</div>
+              <div style={{ color: '#888', fontSize: '12px', marginTop: '4px' }}>{calculateLengths()} lengths</div>
+            </div>
+
+            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>EFFORT</label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+              {['Easy', 'Moderate', 'Hard', 'Max'].map((e) => (
+                <button key={e} onClick={() => setEffort(e)} style={{ background: effort === e ? '#a855f720' : '#13131f', border: `1.5px solid ${effort === e ? '#a855f7' : '#1e1e30'}`, borderRadius: '20px', color: effort === e ? '#a855f7' : '#666', padding: '7px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{e}</button>
+              ))}
+            </div>
+
+            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '8px' }}>NOTES</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="How did the swim feel?" rows={3} style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '14px', resize: 'none', boxSizing: 'border-box', fontFamily: 'system-ui, sans-serif', marginBottom: '28px' }} />
+
+            <button onClick={handleSave} style={{ width: '100%', background: saved ? '#2563eb' : 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '14px', color: 'white', padding: '16px', fontSize: '16px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 0 20px #3b82f640' }}>
+              {saved ? '✓ Swim Saved!' : 'Save Swim'}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SwimmingStats({ setActiveNav, swimmingSessions, swimmingPRs }: any) {
+  const totalSwims = swimmingSessions.length
+
+  const totalDistance = swimmingSessions.reduce(
+    (sum: number, s: any) => sum + (s.distance || 0),
+    0
+  )
+
+  const totalLengths = swimmingSessions.reduce(
+    (sum: number, s: any) => sum + (s.lengths || 0),
+    0
+  )
+
+  const totalTime = swimmingSessions.reduce(
+    (sum: number, s: any) => sum + (s.time || 0),
+    0
+  )
+
+  const strokeCounts = swimmingSessions.reduce((acc: any, s: any) => {
+    if (s.stroke) {
+      acc[s.stroke] = (acc[s.stroke] || 0) + 1
+    }
+    return acc
+  }, {})
+
+  const favouriteStroke =
+    Object.keys(strokeCounts).sort(
+      (a, b) => strokeCounts[b] - strokeCounts[a]
+    )[0] || 'None'
+
+  const longestSwim = swimmingSessions.reduce(
+    (max: number, s: any) => Math.max(max, s.distance || 0),
+    0
+  )
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+
+        <button
+          onClick={() => setActiveNav('swimming-hub')}
+          style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}
+        >
+          ← Back
+        </button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>
+          Swimming Stats
+        </h1>
+
+        <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
+          Your swimming progress from logged sessions
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+          {[
+            { label: 'Swims', value: totalSwims, color: '#3b82f6' },
+            { label: 'Distance', value: `${totalDistance}m`, color: '#06b6d4' },
+            { label: 'Lengths', value: totalLengths, color: '#22c55e' },
+            { label: 'Time', value: `${totalTime} min`, color: '#a855f7' },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              style={{
+                background: '#13131f',
+                border: `1px solid ${stat.color}25`,
+                borderRadius: '14px',
+                padding: '16px',
+                textAlign: 'center'
+              }}
+            >
+              <div style={{ fontSize: '22px', fontWeight: '800', color: stat.color }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: '11px', color: '#555', marginTop: '4px', fontWeight: '700' }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <h2 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '12px' }}>
+          Swim Breakdown
+        </h2>
+
+        {[
+          { label: 'Favourite Stroke', value: favouriteStroke, color: '#06b6d4' },
+          { label: 'Longest Swim', value: `${longestSwim}m`, color: '#22c55e' },
+          { label: 'Personal Records', value: swimmingPRs.length, color: '#f59e0b' },
+        ].map((item) => (
+          <div
+            key={item.label}
+            style={{
+              background: '#13131f',
+              borderLeft: `4px solid ${item.color}`,
+              borderRadius: '14px',
+              padding: '14px 18px',
+              marginBottom: '10px',
+              display: 'flex',
+              justifyContent: 'space-between'
+            }}
+          >
+            <span style={{ fontWeight: '700' }}>{item.label}</span>
+            <span style={{ color: item.color, fontWeight: '800' }}>
+              {item.value}
+            </span>
+          </div>
+        ))}
+
+        <h2 style={{ fontSize: '16px', fontWeight: '800', margin: '24px 0 12px' }}>
+          Recent Swims
+        </h2>
+
+        {swimmingSessions.length === 0 ? (
+          <div
+            style={{
+              background: '#13131f',
+              border: '1px solid #1e1e30',
+              borderRadius: '16px',
+              padding: '18px',
+              color: '#666'
+            }}
+          >
+            No swims logged yet.
+          </div>
+        ) : (
+          swimmingSessions.slice(0, 5).map((swim: any) => (
+            <div
+              key={swim.id}
+              style={{
+                background: '#13131f',
+                border: '1px solid #1e1e30',
+                borderLeft: '4px solid #3b82f6',
+                borderRadius: '14px',
+                padding: '14px 18px',
+                marginBottom: '10px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <strong>{swim.swimType}</strong>
+                <span style={{ color: '#3b82f6', fontWeight: '800' }}>
+                  {swim.distance}m
+                </span>
+              </div>
+
+              <div style={{ color: '#666', fontSize: '12px' }}>
+                {swim.stroke} · {swim.time} min · {swim.pace}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SwimmingPRs({ setActiveNav, swimmingPRs }: any) {
+  const prTargets = ['100m', '400m', '1500m']
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('swimming-hub')} style={{ background: 'none', border: 'none', color: '#22c55e', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Swimming PRs</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your fastest recorded swim distances</p>
+
+        {prTargets.map((target) => {
+          const pr = swimmingPRs.find((p: any) => p.label === target)
+
+          return (
+            <div key={target} style={{ background: '#13131f', border: `1px solid ${pr ? '#22c55e25' : '#1e1e30'}`, borderLeft: `4px solid ${pr ? '#22c55e' : '#444'}`, borderRadius: '16px', padding: '18px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '22px', fontWeight: '900' }}>{target}</div>
+                  <div style={{ color: '#666', fontSize: '12px', marginTop: '4px' }}>
+                    {pr ? `Set ${pr.date}` : 'No record yet'}
+                  </div>
+                </div>
+
+                {pr ? (
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ color: '#22c55e', fontSize: '22px', fontWeight: '900' }}>{pr.time} min</div>
+                    <div style={{ color: '#888', fontSize: '12px' }}>{pr.pace}</div>
+                  </div>
+                ) : (
+                  <div style={{ color: '#444', fontSize: '13px', fontWeight: '700' }}>
+                    Log a swim
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+
+        <div style={{ background: '#13131f', border: '1px solid #3b82f625', borderLeft: '4px solid #3b82f6', borderRadius: '16px', padding: '18px', marginTop: '22px' }}>
+          <div style={{ fontWeight: '800', marginBottom: '8px' }}>How PRs work</div>
+          <p style={{ color: '#888', fontSize: '13px', lineHeight: '1.5', margin: 0 }}>
+            Log a swim of at least 100m, 400m or 1500m. SportSync will automatically save it as a PR if it is your fastest time for that distance.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SwimmingSessionDetail({ category, setActiveNav }: any) {
+  const content: Record<string, any> = {
+    Technique: {
+      emoji: '🎯',
+      color: '#3b82f6',
+      sessions: [
+        { name: 'Catch-Up Freestyle', setup: 'Swim freestyle where one arm waits in front until the other arm completes the stroke.', reps: '8 x 25m', tip: 'Improves body position, timing and long smooth strokes.' },
+        { name: 'Fingertip Drag', setup: 'During freestyle recovery, lightly drag fingertips along the water surface.', reps: '6 x 25m', tip: 'Keeps elbows high and improves relaxed arm recovery.' },
+        { name: 'Single Arm Freestyle', setup: 'Swim using one arm only while the other stays extended in front.', reps: '4 x 25m each arm', tip: 'Helps you feel balance, rotation and pull quality.' },
+      ]
+    },
+    Sprint: {
+      emoji: '⚡',
+      color: '#eab308',
+      sessions: [
+        { name: '12 x 25m Sprint', setup: 'Swim 25m fast with full effort, then rest 30–45 seconds.', reps: '12 rounds', tip: 'Keep technique clean even when sprinting. Fast but messy swimming wastes energy.' },
+        { name: 'Fast 50s', setup: 'Swim 50m at strong pace, rest 60 seconds.', reps: '8 x 50m', tip: 'Try to hold the same time each rep instead of fading.' },
+        { name: 'Dive Start Practice', setup: 'Practise explosive push-offs or starts followed by 15m sprint.', reps: '10 reps', tip: 'The first 15m matters massively in sprint swimming.' },
+      ]
+    },
+    Endurance: {
+      emoji: '🫀',
+      color: '#22c55e',
+      sessions: [
+        { name: 'Steady 1000m Swim', setup: 'Swim continuously at relaxed aerobic effort.', reps: '1000m', tip: 'Focus on relaxed breathing and consistent pacing.' },
+        { name: '5 x 200m Aerobic', setup: 'Swim 200m steady, rest 30 seconds.', reps: '5 rounds', tip: 'Great for building endurance without losing technique.' },
+        { name: 'Ladder Swim', setup: 'Swim 100m, 200m, 300m, 200m, 100m with short rests.', reps: '900m total', tip: 'Use the shorter reps to reset form before the longer blocks.' },
+      ]
+    },
+    'Open Water': {
+      emoji: '🌊',
+      color: '#06b6d4',
+      sessions: [
+        { name: 'Sighting Practice', setup: 'Every 6–8 strokes, lift your eyes forwards briefly before turning to breathe.', reps: '10 x 50m', tip: 'Do not lift your whole head high. Small sighting keeps your hips up.' },
+        { name: 'No-Wall Continuous Swim', setup: 'At each wall, turn gently instead of pushing off hard to simulate open water.', reps: '15–25 mins', tip: 'Open water has no wall push-offs, so this builds more realistic endurance.' },
+        { name: 'Drafting Practice', setup: 'Swim behind or beside a partner while maintaining safe distance.', reps: '6 x 100m', tip: 'Drafting saves energy, but only works if you stay relaxed and controlled.' },
+      ]
+    },
+    Recovery: {
+      emoji: '🌿',
+      color: '#a855f7',
+      sessions: [
+        { name: 'Easy Technique Swim', setup: 'Swim gently with perfect form and long rests.', reps: '20–30 mins', tip: 'Recovery swims should leave you feeling better than when you started.' },
+        { name: 'Mixed Stroke Loosen', setup: 'Alternate 50m freestyle, 25m backstroke and 25m easy breaststroke.', reps: '4–6 rounds', tip: 'Changing stroke reduces repetitive strain and loosens the body.' },
+        { name: 'Kickboard Recovery', setup: 'Use a kickboard at relaxed pace, focusing on rhythm.', reps: '8 x 25m', tip: 'Keep kicks small and steady rather than big and splashy.' },
+      ]
+    },
+    'Race Prep': {
+      emoji: '🏁',
+      color: '#ef4444',
+      sessions: [
+        { name: 'Broken 400m', setup: 'Swim 4 x 100m at target 400m pace with 20 seconds rest.', reps: '4 x 100m', tip: 'This lets you practise race pace without fully fatiguing.' },
+        { name: 'Negative Split 200m', setup: 'Swim 200m where the second 100m is faster than the first.', reps: '4 rounds', tip: 'Teaches control early and aggression late.' },
+        { name: 'Race Finish Practice', setup: 'Swim 75m steady then final 25m all-out.', reps: '6 rounds', tip: 'Many races are won by holding technique when tired.' },
+      ]
+    },
+  }
+
+  const cat = content[category]
+  if (!cat) return null
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('swimming-plans')} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>{cat.emoji} {category}</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Useful swim sessions for this focus</p>
+
+        {cat.sessions.map((s: any) => (
+          <div key={s.name} style={{ background: '#13131f', border: `1px solid ${cat.color}25`, borderLeft: `4px solid ${cat.color}`, borderRadius: '16px', padding: '18px', marginBottom: '12px' }}>
+            <div style={{ fontWeight: '900', fontSize: '16px', marginBottom: '8px' }}>{s.name}</div>
+            <p style={{ color: '#aaa', fontSize: '13px', lineHeight: '1.6', margin: '0 0 10px' }}>{s.setup}</p>
+            <span style={{ background: `${cat.color}15`, border: `1px solid ${cat.color}30`, borderRadius: '20px', color: cat.color, fontSize: '11px', fontWeight: '700', padding: '4px 10px' }}>📋 {s.reps}</span>
+            <div style={{ background: '#0a0a0f', borderRadius: '10px', padding: '10px 14px', borderLeft: `3px solid ${cat.color}`, marginTop: '10px' }}>
+              <span style={{ fontSize: '11px', color: cat.color, fontWeight: '700' }}>💡 COACHING TIP </span>
+              <span style={{ fontSize: '12px', color: '#888' }}>{s.tip}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SuggestedSwimmingSessions({ setActiveNav }: any) {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+
+  const categories = [
+    { label: 'Technique', emoji: '🎯', color: '#3b82f6', desc: 'Improve stroke efficiency and body position' },
+    { label: 'Sprint', emoji: '⚡', color: '#eab308', desc: 'Short fast repeats for speed and power' },
+    { label: 'Endurance', emoji: '🫀', color: '#22c55e', desc: 'Build aerobic swim fitness' },
+    { label: 'Open Water', emoji: '🌊', color: '#06b6d4', desc: 'Sighting, pacing and continuous swimming' },
+    { label: 'Recovery', emoji: '🌿', color: '#a855f7', desc: 'Easy sessions to loosen up' },
+    { label: 'Race Prep', emoji: '🏁', color: '#ef4444', desc: 'Race pace and strong finishing' },
+  ]
+
+  if (selectedCategory) {
+    return <SwimmingSessionDetail category={selectedCategory} setActiveNav={(nav: string) => {
+      if (nav === 'swimming-plans') setSelectedCategory(null)
+      else setActiveNav(nav)
+    }} />
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('swimming-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Suggested Swimming Sessions</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose what you want to improve</p>
+
+        {categories.map((cat) => (
+          <div key={cat.label} onClick={() => setSelectedCategory(cat.label)} style={{ background: '#13131f', border: `1px solid ${cat.color}25`, borderLeft: `4px solid ${cat.color}`, borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', boxShadow: `0 0 20px ${cat.color}10`, marginBottom: '14px' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${cat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0 }}>{cat.emoji}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>{cat.label}</div>
+              <div style={{ color: '#666', fontSize: '13px' }}>{cat.desc}</div>
+            </div>
+            <div style={{ color: cat.color, fontSize: '24px' }}>›</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+function LogRun({ setActiveNav, runningSessions, setRunningSessions, runningPRs, setRunningPRs, addSocialPost }: any) {
   const [runType, setRunType] = useState('')
   const [distance, setDistance] = useState('')
   const [time, setTime] = useState('')
@@ -1126,6 +1614,12 @@ function LogRun({ setActiveNav, runningSessions, setRunningSessions, runningPRs,
     }
 
     setRunningSessions([newRun, ...runningSessions])
+    addSocialPost({
+      sport: 'Running',
+      sportColor: '#06b6d4',
+      emoji: '🏃',
+      caption: `Logged a ${d}km ${runType || 'run'} in ${t} mins at ${pace}.`
+    })
 
     const newPRs = [...runningPRs]
 
@@ -1876,16 +2370,17 @@ function ProfilePage({ setActiveNav, tennisSessions, runningSessions }: { setAct
   )
 }
 
-function SocialPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
+function SocialPage({ setActiveNav, socialPosts }: any) {
   const [activeNav, setActiveNavLocal] = useState('social')
   const [likedPosts, setLikedPosts] = useState<number[]>([])
 
-  const posts = [
+  const defaultPosts = [
     { id: 1, user: 'Toby Furlong', handle: '@tobyfurlong', sport: 'Football', sportColor: '#22c55e', emoji: '⚽', time: 'Just now', caption: 'Banged in 2 goals tonight! We won 4-2 in 5-a-side. Buzzing.', likes: 24, comments: 8, hasMedia: true, mediaBg: 'linear-gradient(135deg, #1a3a1a, #0a1a0a)' },
     { id: 2, user: 'Marcus R.', handle: '@marcusr', sport: 'Gym', sportColor: '#a855f7', emoji: '🏋️', time: '5 hours ago', caption: 'New PB on deadlift today - 140kg! Feeling strong.', likes: 42, comments: 12, hasMedia: true, mediaBg: 'linear-gradient(135deg, #1a0a2e, #0a0a1a)' },
     { id: 3, user: 'Sarah K.', handle: '@sarahk', sport: 'Running', sportColor: '#06b6d4', emoji: '🏃', time: 'Yesterday', caption: 'Sub-25 min 5K! Training is paying off. Who wants to race next week?', likes: 31, comments: 6, hasMedia: true, mediaBg: 'linear-gradient(135deg, #0a1a2e, #0a0a1a)' },
     { id: 4, user: 'Jake M.', handle: '@jakем', sport: 'Football', sportColor: '#22c55e', emoji: '⚽', time: '2 days ago', caption: `Sunday league season starts next week. Cannot wait. The lads are looking sharp in training.`, likes: 18, comments: 4, hasMedia: false, mediaBg: '' },
   ]
+  const posts = [...socialPosts, ...defaultPosts]
 
   const toggleLike = (id: number) => {
     setLikedPosts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id])
@@ -2727,6 +3222,16 @@ function RunningHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
 
   return <SportHubTemplate setActiveNav={setActiveNav} title="Running Hub" emoji="🏃" color="#06b6d4" options={options} />
 }
+function SwimmingHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
+  const options = [
+    { id: 'log-swim', label: 'Log Swim', emoji: '📝', desc: 'Distance, stroke, lengths and pace', color: '#3b82f6' },
+    { id: 'swimming-plans', label: 'Suggested Sessions', emoji: '💡', desc: 'Technique, endurance, sprint and recovery', color: '#f59e0b' },
+    { id: 'swimming-prs', label: 'Personal Records', emoji: '🏆', desc: 'Fastest 100m, 400m and 1500m', color: '#22c55e' },
+    { id: 'swimming-stats', label: 'My Stats', emoji: '📊', desc: 'Distance, lengths, pace and stroke mix', color: '#a855f7' },
+  ]
+
+  return <SportHubTemplate setActiveNav={setActiveNav} title="Swimming Hub" emoji="🏊" color="#3b82f6" options={options} />
+}
 
 function SportHubTemplate({ setActiveNav, title, emoji, color, options }: any) {
   return (
@@ -2826,6 +3331,7 @@ function TrackPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
     { id: 'gym-hub', name: 'Gym', emoji: '🏋️', color: '#a855f7', sessions: 24 },
     { id: 'tennis-hub', name: 'Tennis', emoji: '🎾', color: '#eab308', sessions: 8 },
     { id: 'running-hub', name: 'Running', emoji: '🏃', color: '#06b6d4', sessions: 15 },
+    { id: 'swimming-hub', name: 'Swimming', emoji: '🏊', color: '#3b82f6', sessions: 0 },
   ]
 
   return (
@@ -3045,6 +3551,22 @@ const [runningPRs, setRunningPRs] = useState<any[]>(() => {
   const saved = localStorage.getItem('runningPRs')
   return saved ? JSON.parse(saved) : []
 })
+const [swimmingSessions, setSwimmingSessions] = useState<any[]>(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('swimmingSessions')
+  return saved ? JSON.parse(saved) : []
+})
+
+const [swimmingPRs, setSwimmingPRs] = useState<any[]>(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('swimmingPRs')
+  return saved ? JSON.parse(saved) : []
+})
+const [socialPosts, setSocialPosts] = useState<any[]>(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('socialPosts')
+  return saved ? JSON.parse(saved) : []
+})
 useEffect(() => {
   localStorage.setItem('tennisSessions', JSON.stringify(tennisSessions))
 }, [tennisSessions])
@@ -3059,6 +3581,33 @@ useEffect(() => {
 useEffect(() => {
   localStorage.setItem('runningPRs', JSON.stringify(runningPRs))
 }, [runningPRs])
+useEffect(() => {
+  localStorage.setItem('swimmingSessions', JSON.stringify(swimmingSessions))
+}, [swimmingSessions])
+
+useEffect(() => {
+  localStorage.setItem('swimmingPRs', JSON.stringify(swimmingPRs))
+}, [swimmingPRs])
+useEffect(() => {
+  localStorage.setItem('socialPosts', JSON.stringify(socialPosts))
+}, [socialPosts])
+
+const addSocialPost = (post: any) => {
+  setSocialPosts((prev) => [
+    {
+      id: Date.now(),
+      user: 'Toby Furlong',
+      handle: '@tobyfurlong',
+      time: 'Just now',
+      likes: 0,
+      comments: 0,
+      hasMedia: false,
+      mediaBg: '',
+      ...post,
+    },
+    ...prev,
+  ])
+}
 
 useEffect(() => {
   supabase.auth.getSession().then(({ data: { session } }) => {
@@ -3100,6 +3649,44 @@ if (activeNav === 'tennis-hub') {
 if (activeNav === 'running-hub') {
   return <RunningHub setActiveNav={setActiveNav} />
 }
+if (activeNav === 'swimming-hub') {
+  return <SwimmingHub setActiveNav={setActiveNav} />
+}
+if (activeNav === 'log-swim') {
+  return (
+    <LogSwim
+      setActiveNav={setActiveNav}
+      swimmingSessions={swimmingSessions}
+      setSwimmingSessions={setSwimmingSessions}
+      swimmingPRs={swimmingPRs}
+      setSwimmingPRs={setSwimmingPRs}
+      addSocialPost={addSocialPost}
+    />
+  )
+}
+
+if (activeNav === 'swimming-stats') {
+  return (
+    <SwimmingStats
+      setActiveNav={setActiveNav}
+      swimmingSessions={swimmingSessions}
+      swimmingPRs={swimmingPRs}
+    />
+  )
+}
+
+if (activeNav === 'swimming-prs') {
+  return (
+    <SwimmingPRs
+      setActiveNav={setActiveNav}
+      swimmingPRs={swimmingPRs}
+    />
+  )
+}
+
+if (activeNav === 'swimming-plans') {
+  return <SuggestedSwimmingSessions setActiveNav={setActiveNav} />
+}
 if (activeNav === 'log-run') {
   return (
     <LogRun
@@ -3108,6 +3695,7 @@ if (activeNav === 'log-run') {
       setRunningSessions={setRunningSessions}
       runningPRs={runningPRs}
       setRunningPRs={setRunningPRs}
+      addSocialPost={addSocialPost}
     />
   )
 }
@@ -3144,8 +3732,7 @@ if (activeNav === 'suggested-drills') {
   return <SuggestedDrills setActiveNav={setActiveNav} />
 }
 if (activeNav === 'log-tennis-session') {
-  return <LogTennisSession setActiveNav={setActiveNav} tennisSessions={tennisSessions} setTennisSessions={setTennisSessions} />
-}
+  return <LogTennisSession setActiveNav={setActiveNav} tennisSessions={tennisSessions} setTennisSessions={setTennisSessions} addSocialPost={addSocialPost} />}
 if (activeNav === 'tennis-matches') {
   return <TennisMatches setActiveNav={setActiveNav} tennisResults={tennisResults} setTennisResults={setTennisResults} />
 }
@@ -3172,7 +3759,7 @@ if (activeNav === 'gym-stats') {
   return <GymStats setActiveNav={setActiveNav} />
 }
 if (activeNav === 'social') {
-  return <SocialPage setActiveNav={setActiveNav} />
+  return <SocialPage setActiveNav={setActiveNav} socialPosts={socialPosts} />
 }
 if (activeNav === 'profile') {
   return <ProfilePage setActiveNav={setActiveNav} tennisSessions={tennisSessions} runningSessions={runningSessions} />
