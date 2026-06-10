@@ -2195,10 +2195,13 @@ function SuggestedDrills({ setActiveNav }: { setActiveNav: (nav: string) => void
   )
 }
 
-function ProfilePage({ setActiveNav, tennisSessions, runningSessions }: { setActiveNav: (nav: string) => void, tennisSessions: any[], runningSessions: any[] }) {
-  const [activeNav, setActiveNavLocal] = useState('profile')
-  const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settings'>('activity')
+function ProfilePage({ setActiveNav, tennisSessions, runningSessions, swimmingSessions }: any) {  const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settings'>('activity')
+const [activeNav, setActiveNavLocal] = useState('profile')
   const [position, setPosition] = useState('Forward')
+  const [bio, setBio] = useState(
+    localStorage.getItem('userBio') || 'Multi-sport athlete 🎾🏃🏊'
+  )
+  const [editingBio, setEditingBio] = useState(false)
   const [editingPosition, setEditingPosition] = useState(false)
 
   const recentActivity = [
@@ -2220,18 +2223,112 @@ function ProfilePage({ setActiveNav, tennisSessions, runningSessions }: { setAct
       emoji: '🏃'
     })),
   
+    ...swimmingSessions.slice(0, 3).map((s: any) => ({
+      sport: 'Swimming',
+      title: `${s.distance || 0}m ${s.stroke || 'Swim'}`,
+      detail: `${s.time || 0} mins · ${s.lengths || 0} lengths · ${s.pace || '0:00/100m'}`,
+      date: s.date || 'Today',
+      color: '#3b82f6',
+      emoji: '🏊'
+    })),
+  
     { sport: 'Football', title: '5-a-side vs FC Rovers', detail: 'Won 4-2 · 2 goals · 1 assist', date: 'Wed 4 Jun', color: '#22c55e', emoji: '⚽' },
     { sport: 'Gym', title: 'Push Day', detail: '52 min · 14 sets · 3,100kg volume', date: 'Mon 2 Jun', color: '#a855f7', emoji: '🏋️' },
-  ].slice(0, 6)
+  ].slice(0, 8)
 
-  const achievements = [
-    { title: 'First Goal', desc: 'Scored your first logged goal', emoji: '⚽', earned: true, color: '#f59e0b' },
-    { title: 'Hat Trick', desc: 'Scored 3 goals in one match', emoji: '🎩', earned: true, color: '#f59e0b' },
-    { title: 'Iron Will', desc: '7 day training streak', emoji: '🔥', earned: true, color: '#ef4444' },
-    { title: 'Century', desc: 'Log 100 sessions total', emoji: '💯', earned: false, color: '#666' },
-    { title: 'PR Machine', desc: 'Set 10 personal records', emoji: '🏆', earned: true, color: '#f59e0b' },
-    { title: 'Social Star', desc: 'Get 50 likes on a post', emoji: '⭐', earned: false, color: '#666' },
+  const allLoggedSessions = [
+    ...tennisSessions.map((s: any) => ({ ...s, sport: 'Tennis' })),
+    ...runningSessions.map((s: any) => ({ ...s, sport: 'Running' })),
+    ...swimmingSessions.map((s: any) => ({ ...s, sport: 'Swimming' })),
   ]
+  
+  const thisWeekSessions = allLoggedSessions.length
+  
+  const currentStreak = allLoggedSessions.length > 0 ? Math.min(allLoggedSessions.length, 7) : 0
+  const bestStreak = allLoggedSessions.length > 0 ? Math.max(currentStreak, Math.min(allLoggedSessions.length + 2, 14)) : 0
+  const totalSessions =
+  tennisSessions.length +
+  runningSessions.length +
+  swimmingSessions.length
+
+const totalRunningKm = runningSessions.reduce(
+  (sum: number, r: any) => sum + (r.distance || 0),
+  0
+)
+
+const totalSwimmingKm = swimmingSessions.reduce(
+  (sum: number, s: any) => sum + ((s.distance || 0) / 1000),
+  0
+)
+
+const totalServes = tennisSessions.reduce(
+  (sum: number, s: any) => sum + (s.serves || 0),
+  0
+)
+
+const sportsUsed =
+  (tennisSessions.length > 0 ? 1 : 0) +
+  (runningSessions.length > 0 ? 1 : 0) +
+  (swimmingSessions.length > 0 ? 1 : 0)
+
+const achievements = [
+  {
+    title: 'First Tennis Session',
+    desc: 'Log your first tennis session',
+    emoji: '🎾',
+    earned: tennisSessions.length >= 1,
+    color: '#eab308'
+  },
+  {
+    title: '100 Serves',
+    desc: 'Log 100 serves total',
+    emoji: '💥',
+    earned: totalServes >= 100,
+    color: '#f59e0b'
+  },
+  {
+    title: 'First Run',
+    desc: 'Complete your first run',
+    emoji: '🏃',
+    earned: runningSessions.length >= 1,
+    color: '#06b6d4'
+  },
+  {
+    title: '50km Runner',
+    desc: 'Run 50km total',
+    emoji: '🛣️',
+    earned: totalRunningKm >= 50,
+    color: '#06b6d4'
+  },
+  {
+    title: 'First Swim',
+    desc: 'Log your first swim',
+    emoji: '🏊',
+    earned: swimmingSessions.length >= 1,
+    color: '#3b82f6'
+  },
+  {
+    title: '10km Swimmer',
+    desc: 'Swim 10km total',
+    emoji: '🌊',
+    earned: totalSwimmingKm >= 10,
+    color: '#3b82f6'
+  },
+  {
+    title: 'Multi-Sport Athlete',
+    desc: 'Use 3 different sports',
+    emoji: '🏅',
+    earned: sportsUsed >= 3,
+    color: '#22c55e'
+  },
+  {
+    title: '25 Sessions',
+    desc: 'Log 25 sessions',
+    emoji: '🔥',
+    earned: totalSessions >= 25,
+    color: '#ef4444'
+  },
+]
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
@@ -2246,28 +2343,105 @@ function ProfilePage({ setActiveNav, tennisSessions, runningSessions }: { setAct
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px' }}>Toby Furlong</h1>
             <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>@tobyfurlong</p>
+            <p style={{ color: '#aaa', fontSize: '13px', marginTop: '6px' }}>
+  {bio}
+</p>
           </div>
         </div>
 
+        <div style={{ marginBottom: '20px' }}>
+  {editingBio ? (
+    <div style={{ display: 'flex', gap: '10px' }}>
+      <input
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        style={{
+          flex: 1,
+          background: '#13131f',
+          border: '1px solid #2a2a40',
+          borderRadius: '10px',
+          color: 'white',
+          padding: '10px'
+        }}
+      />
+      <button
+        onClick={() => setEditingBio(false)}
+        style={{
+          background: '#22c55e',
+          border: 'none',
+          borderRadius: '10px',
+          color: 'white',
+          padding: '10px 14px',
+          fontWeight: '700',
+          cursor: 'pointer'
+        }}
+      >
+        Save
+      </button>
+    </div>
+  ) : (
+    <button
+      onClick={() => setEditingBio(true)}
+      style={{
+        background: '#13131f',
+        border: '1px solid #a855f740',
+        borderRadius: '10px',
+        color: '#a855f7',
+        padding: '10px 14px',
+        fontWeight: '700',
+        cursor: 'pointer'
+      }}
+    >
+      ✏️ Edit Bio
+    </button>
+  )}
+</div>
         {/* Stats Row */}
+        {/* Streak Row */}
+<div style={{ background: '#13131f', border: '1px solid #ef444425', borderLeft: '4px solid #ef4444', borderRadius: '16px', padding: '18px', marginBottom: '20px' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+    <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#ef444415', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>🔥</div>
+    <div>
+      <div style={{ fontSize: '18px', fontWeight: '900' }}>Training Streak</div>
+      <div style={{ color: '#666', fontSize: '12px' }}>Keep showing up consistently</div>
+    </div>
+  </div>
+
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+    {[
+      { label: 'Current', value: `${currentStreak}d`, color: '#ef4444' },
+      { label: 'Best', value: `${bestStreak}d`, color: '#f59e0b' },
+      { label: 'This Week', value: thisWeekSessions, color: '#22c55e' },
+    ].map((item) => (
+      <div key={item.label} style={{ background: '#0a0a0f', border: `1px solid ${item.color}25`, borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+        <div style={{ color: item.color, fontSize: '20px', fontWeight: '900' }}>{item.value}</div>
+        <div style={{ color: '#555', fontSize: '10px', fontWeight: '700', marginTop: '3px' }}>{item.label}</div>
+      </div>
+    ))}
+  </div>
+</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
           {[
   {
     label: 'Sessions',
-    value: (tennisSessions.length + runningSessions.length).toString(),
+    value: (tennisSessions.length + runningSessions.length + swimmingSessions.length).toString(),
     color: '#a855f7'
   },
   {
     label: 'Sports',
     value: (
       (tennisSessions.length > 0 ? 1 : 0) +
-      (runningSessions.length > 0 ? 1 : 0)
+      (runningSessions.length > 0 ? 1 : 0) +
+      (swimmingSessions.length > 0 ? 1 : 0)
     ).toString(),
     color: '#06b6d4'
   },
   {
-    label: 'Followers',
-    value: '128',
+    label: 'Distance',
+    value: `${(
+      runningSessions.reduce((sum: number, r: any) => sum + (r.distance || 0), 0) +
+      swimmingSessions.reduce((sum: number, s: any) => sum + ((s.distance || 0) / 1000), 0)
+    ).toFixed(1)}km`,
     color: '#22c55e'
   },
 ]
@@ -3629,7 +3803,49 @@ if (authLoading) {
 }
 
 if (!user) {
-  return <AuthScreen />
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏅</div>
+      <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px', margin: '0 0 8px' }}>SportSync</h1>
+      <p style={{ color: '#666', marginBottom: '40px', fontSize: '14px' }}>Sign in to continue</p>
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <input
+          id="auth-email"
+          placeholder="Email"
+          style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', boxSizing: 'border-box' }}
+        />
+        <input
+          id="auth-password"
+          placeholder="Password"
+          type="password"
+          style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', boxSizing: 'border-box' }}
+        />
+        <button
+          onClick={async () => {
+            const email = (document.getElementById('auth-email') as HTMLInputElement).value
+            const password = (document.getElementById('auth-password') as HTMLInputElement).value
+            const { error } = await supabase.auth.signInWithPassword({ email, password })
+            if (error) alert(error.message)
+          }}
+          style={{ width: '100%', background: 'linear-gradient(135deg, #a855f7, #06b6d4)', border: 'none', borderRadius: '14px', color: 'white', padding: '16px', fontSize: '16px', fontWeight: '800', cursor: 'pointer', marginTop: '4px' }}
+        >
+          Sign In
+        </button>
+        <button
+          onClick={async () => {
+            const email = (document.getElementById('auth-email') as HTMLInputElement).value
+            const password = (document.getElementById('auth-password') as HTMLInputElement).value
+            const { error } = await supabase.auth.signUp({ email, password })
+            if (error) alert(error.message)
+            else alert('Check your email to confirm your account!')
+          }}
+          style={{ width: '100%', background: 'none', border: '1.5px solid #1e1e30', borderRadius: '14px', color: '#aaa', padding: '16px', fontSize: '16px', fontWeight: '700', cursor: 'pointer' }}
+        >
+          Create Account
+        </button>
+      </div>
+    </div>
+  )
 }
 if (activeNav === 'sports') {
   return <SportsPage setActiveNav={setActiveNav} />
@@ -3762,8 +3978,10 @@ if (activeNav === 'social') {
   return <SocialPage setActiveNav={setActiveNav} socialPosts={socialPosts} />
 }
 if (activeNav === 'profile') {
-  return <ProfilePage setActiveNav={setActiveNav} tennisSessions={tennisSessions} runningSessions={runningSessions} />
+  return <ProfilePage setActiveNav={setActiveNav} tennisSessions={tennisSessions} runningSessions={runningSessions} swimmingSessions={swimmingSessions} />
 }
+
+
 
   return (
     <div
