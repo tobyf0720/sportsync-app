@@ -82,7 +82,7 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('football-hub')} style={{ background: 'none', border: 'none', color: '#22c55e', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log a Session</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 28px' }}>Record your football session</p>
@@ -285,7 +285,7 @@ function LogTennisSession({ setActiveNav, tennisSessions, setTennisSessions, add
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(234,179,8,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('tennis-hub')} style={{ background: 'none', border: 'none', color: '#eab308', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Tennis Session</h1>
@@ -394,7 +394,7 @@ function TennisMatches({ setActiveNav, tennisResults, setTennisResults }: { setA
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('tennis-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -494,7 +494,7 @@ function BasketballStats({ setActiveNav, basketballSessions }: any) {
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(249,115,22,0.16) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('basketball-hub')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Basketball Stats</h1>
@@ -674,7 +674,7 @@ useEffect(() => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('basketball-hub')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
@@ -803,7 +803,7 @@ function SuggestedBasketballSessions({ setActiveNav, setSelectedBasketballCatego
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('basketball-hub')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>Basketball Training</h1>
@@ -1085,7 +1085,7 @@ function BasketballSessionDetail({ category, setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('basketball-plans')} style={{ background: 'none', border: 'none', color: data.color, fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
@@ -1180,7 +1180,7 @@ const sa = parseInt(scoreAgainst.trim()) || 0
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
 
         <button onClick={() => setActiveNav('football-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -1499,7 +1499,7 @@ function DrillDetail({ category, setActiveNav }: { category: string, setActiveNa
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: `radial-gradient(circle, ${cat.color}20 0%, transparent 70%)`, pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('suggested-drills')} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
           <div style={{ width: '52px', height: '52px', borderRadius: '50%', border: `2.5px solid ${cat.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', background: '#13131f', boxShadow: `0 0 16px ${cat.color}40` }}>{cat.emoji}</div>
@@ -1758,7 +1758,7 @@ function TennisDrillDetail({ category, setActiveNav }: { category: string, setAc
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('suggested-tennis-drills')} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
@@ -1889,7 +1889,7 @@ function LogSwim({ setActiveNav, swimmingSessions, setSwimmingSessions, swimming
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('swimming-hub')} style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Swim</h1>
@@ -1992,7 +1992,7 @@ function SwimmingStats({ setActiveNav, swimmingSessions, swimmingPRs }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
 
         <button
           onClick={() => setActiveNav('swimming-hub')}
@@ -2116,7 +2116,7 @@ function SwimmingPRs({ setActiveNav, swimmingPRs }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('swimming-hub')} style={{ background: 'none', border: 'none', color: '#22c55e', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Swimming PRs</h1>
@@ -2224,7 +2224,7 @@ function SwimmingSessionDetail({ category, setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('swimming-plans')} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>{cat.emoji} {category}</h1>
@@ -2267,7 +2267,7 @@ function SuggestedSwimmingSessions({ setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('swimming-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Suggested Swimming Sessions</h1>
@@ -2374,7 +2374,7 @@ function LogRun({ setActiveNav, runningSessions, setRunningSessions, runningPRs,
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('running-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Run</h1>
@@ -2451,7 +2451,7 @@ function RunningStats({ setActiveNav, runningSessions, runningPRs }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('running-hub')} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Running Stats</h1>
@@ -2511,7 +2511,7 @@ function RunningPRs({ setActiveNav, runningPRs }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('running-hub')} style={{ background: 'none', border: 'none', color: '#22c55e', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Running PRs</h1>
@@ -2682,7 +2682,7 @@ function RunningSessionDetail({ category, setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('running-plans')} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>{cat.emoji} {category}</h1>
@@ -2726,7 +2726,7 @@ function SuggestedRunningSessions({ setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('running-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Suggested Running Sessions</h1>
@@ -2771,7 +2771,7 @@ function TennisStats({ setActiveNav, tennisSessions, tennisResults }: { setActiv
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('tennis-hub')} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Tennis Stats</h1>
@@ -2853,7 +2853,7 @@ function SuggestedTennisDrills({ setActiveNav }: { setActiveNav: (nav: string) =
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(234,179,8,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('tennis-hub')} style={{ background: 'none', border: 'none', color: '#eab308', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Suggested Tennis Drills</h1>
@@ -2897,7 +2897,7 @@ function SuggestedDrills({ setActiveNav }: { setActiveNav: (nav: string) => void
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('football-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Suggested Drills</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Select an area to work on</p>
@@ -2926,6 +2926,18 @@ function ProfilePage({ setActiveNav, tennisSessions, runningSessions, swimmingSe
   )
   const [editingBio, setEditingBio] = useState(false)
   const [editingPosition, setEditingPosition] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
+
+useEffect(() => {
+  const loadProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      if (data) setProfile(data)
+    }
+  }
+  loadProfile()
+}, [])
 
   const recentActivity = [
     ...tennisSessions.slice(0, 3).map((s: any) => ({
@@ -3252,13 +3264,97 @@ const achievements = [
   earned: cyclingSessions.some((s: any) => (s.avgSpeed || 0) >= 30),
   color: '#ef4444'
 },
+{
+  title: 'First Round of Golf',
+  desc: 'Log your first round',
+  emoji: '⛳',
+  earned: golfSessions.filter((s: any) => s.session_type === 'Round').length >= 1,
+  color: '#84cc16'
+},
+{
+  title: 'Sub-90 Round',
+  desc: 'Shoot below 90 in a round',
+  emoji: '🏌️',
+  earned: golfSessions.some((s: any) => s.session_type === 'Round' && (s.score || 999) < 90),
+  color: '#84cc16'
+},
+{
+  title: '10 Rounds Played',
+  desc: 'Log 10 rounds of golf',
+  emoji: '🏆',
+  earned: golfSessions.filter((s: any) => s.session_type === 'Round').length >= 10,
+  color: '#f59e0b'
+},
+{
+  title: 'First Rugby Session',
+  desc: 'Log your first rugby session',
+  emoji: '🏉',
+  earned: rugbySessions.length >= 1,
+  color: '#f59e0b'
+},
+{
+  title: 'Try Scorer',
+  desc: 'Score your first try',
+  emoji: '🏆',
+  earned: rugbySessions.some((s: any) => (s.tries || 0) >= 1),
+  color: '#22c55e'
+},
+{
+  title: '50 Tackles',
+  desc: 'Make 50 tackles total',
+  emoji: '💪',
+  earned: rugbySessions.reduce((sum: number, s: any) => sum + (s.tackles || 0), 0) >= 50,
+  color: '#ef4444'
+},
+{
+  title: '25 Rugby Sessions',
+  desc: 'Log 25 rugby sessions',
+  emoji: '🔥',
+  earned: rugbySessions.length >= 25,
+  color: '#f59e0b'
+},
+{
+  title: 'First Cricket Session',
+  desc: 'Log your first cricket session',
+  emoji: '🏏',
+  earned: cricketSessions.length >= 1,
+  color: '#06b6d4'
+},
+{
+  title: 'Half Century',
+  desc: 'Score 50+ runs in a session',
+  emoji: '🏏',
+  earned: cricketSessions.some((s: any) => (s.runs || 0) >= 50),
+  color: '#22c55e'
+},
+{
+  title: 'Century',
+  desc: 'Score 100+ runs in a session',
+  emoji: '💯',
+  earned: cricketSessions.some((s: any) => (s.runs || 0) >= 100),
+  color: '#f59e0b'
+},
+{
+  title: '5 Wicket Haul',
+  desc: 'Take 5 wickets in a session',
+  emoji: '🎯',
+  earned: cricketSessions.some((s: any) => (s.wickets || 0) >= 5),
+  color: '#ef4444'
+},
+{
+  title: '25 Cricket Sessions',
+  desc: 'Log 25 cricket sessions',
+  emoji: '🔥',
+  earned: cricketSessions.length >= 25,
+  color: '#06b6d4'
+},
 ]
 
 const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settings'>('activity')
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
 
         {/* Profile Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '28px' }}>
@@ -3266,8 +3362,8 @@ const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settin
             <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #1a1a2e, #0a0a0f)', border: '3px solid transparent', backgroundClip: 'padding-box', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', boxShadow: '0 0 0 3px #a855f7, 0 0 20px #a855f740' }}>👤</div>
           </div>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px' }}>Toby Furlong</h1>
-            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>@tobyfurlong</p>
+          <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px' }}>{profile?.username || 'Athlete'}</h1>
+<p style={{ color: '#666', fontSize: '14px', margin: 0 }}>@{profile?.username || 'athlete'}</p>
             <p style={{ color: '#aaa', fontSize: '13px', marginTop: '6px' }}>
   {bio}
 </p>
@@ -3466,7 +3562,7 @@ const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settin
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '430px', background: '#0d0d1a', borderTop: '1px solid #1e1e30', display: 'flex', justifyContent: 'space-around', padding: '12px 0 20px', zIndex: 100 }}>
         {[{ id: 'home', label: 'Home', emoji: '🏠' }, { id: 'sports', label: 'Sports', emoji: '🏅' }, { id: 'track', label: 'Track', emoji: '📈' }, { id: 'social', label: 'Social', emoji: '👥' }, { id: 'profile', label: 'Profile', emoji: '👤' }].map((item) => (
-          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
+          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
             <span style={{ fontSize: '20px' }}>{item.emoji}</span>
             <span style={{ fontSize: '10px', fontWeight: '600', color: activeNav === item.id ? '#a855f7' : '#555' }}>{item.label}</span>
           </button>
@@ -3496,7 +3592,7 @@ function SocialPage({ setActiveNav, socialPosts }: any) {
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto', position: 'relative' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
             <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 4px' }}>Social</h1>
@@ -3560,7 +3656,7 @@ function SocialPage({ setActiveNav, socialPosts }: any) {
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '430px', background: '#0d0d1a', borderTop: '1px solid #1e1e30', display: 'flex', justifyContent: 'space-around', padding: '12px 0 20px', zIndex: 100 }}>
         {[{ id: 'home', label: 'Home', emoji: '🏠' }, { id: 'sports', label: 'Sports', emoji: '🏅' }, { id: 'track', label: 'Track', emoji: '📈' }, { id: 'social', label: 'Social', emoji: '👥' }, { id: 'profile', label: 'Profile', emoji: '👤' }].map((item) => (
-          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
+          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
             <span style={{ fontSize: '20px' }}>{item.emoji}</span>
             <span style={{ fontSize: '10px', fontWeight: '600', color: activeNav === item.id ? '#a855f7' : '#555' }}>{item.label}</span>
           </button>
@@ -3597,7 +3693,7 @@ function GymStats({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('gym-hub')} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>My Gym Stats</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 20px' }}>Your training performance data</p>
@@ -3848,7 +3944,7 @@ function GymWorkoutDetail({ category, setActiveNav }: { category: string, setAct
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: `radial-gradient(circle, ${cat.color}20 0%, transparent 70%)`, pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('suggested-workouts')} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
           <div style={{ width: '52px', height: '52px', borderRadius: '50%', border: `2.5px solid ${cat.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', background: '#13131f', boxShadow: `0 0 16px ${cat.color}40` }}>{cat.emoji}</div>
@@ -3902,7 +3998,7 @@ function SuggestedWorkouts({ setActiveNav }: { setActiveNav: (nav: string) => vo
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('gym-hub')} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Suggested Workouts</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Select a training focus</p>
@@ -3962,7 +4058,7 @@ function FootballStats({ setActiveNav }: { setActiveNav: (nav: string) => void }
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
 
         <button onClick={() => setActiveNav('football-hub')} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>My Stats</h1>
@@ -4106,7 +4202,7 @@ const [workoutDate, setWorkoutDate] = useState('')
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('gym-hub')} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
 
         <div style={{ display: 'flex', background: '#13131f', borderRadius: '12px', padding: '4px', marginBottom: '24px' }}>
@@ -4224,7 +4320,7 @@ function PersonalRecords({ setActiveNav }: { setActiveNav: (nav: string) => void
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('gym-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
@@ -4269,7 +4365,7 @@ function GymHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh' }}>
+      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ padding: '50px 24px 8px' }}>
           <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
@@ -4297,7 +4393,7 @@ function GymHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '430px', background: '#0d0d1a', borderTop: '1px solid #1e1e30', display: 'flex', justifyContent: 'space-around', padding: '12px 0 20px', zIndex: 100 }}>
         {[{ id: 'home', label: 'Home', emoji: '🏠' }, { id: 'sports', label: 'Sports', emoji: '🏅' }, { id: 'track', label: 'Track', emoji: '📈' }, { id: 'social', label: 'Social', emoji: '👥' }, { id: 'profile', label: 'Profile', emoji: '👤' }].map((item) => (
-          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
+          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
             <span style={{ fontSize: '20px' }}>{item.emoji}</span>
             <span style={{ fontSize: '10px', fontWeight: '600', color: activeNav === item.id ? '#a855f7' : '#555' }}>{item.label}</span>
           </button>
@@ -4335,7 +4431,7 @@ function BasketballHub({ setActiveNav, basketballSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🏀 Basketball</h1>
@@ -4381,7 +4477,7 @@ function BoxingHub({ setActiveNav, boxingSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🥊 Boxing</h1>
@@ -4433,7 +4529,7 @@ function GolfHub({ setActiveNav, golfSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#84cc16', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>⛳ Golf</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track rounds, practice and improvement</p>
@@ -4520,7 +4616,7 @@ function LogGolf({ setActiveNav, golfSessions, setGolfSessions, addSocialPost }:
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('golf-hub')} style={{ background: 'none', border: 'none', color: '#84cc16', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Golf Session</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track your round or practice</p>
@@ -4583,7 +4679,7 @@ function GolfStats({ setActiveNav, golfSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('golf-hub')} style={{ background: 'none', border: 'none', color: '#84cc16', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Golf Stats</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your performance from logged rounds</p>
@@ -4721,7 +4817,7 @@ function SuggestedGolfSessions({ setActiveNav }: any) {
     const cat = drills[selected]
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-        <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
           <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
           <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 24px' }}>{cat.emoji} {selected}</h1>
           {cat.sections.map((section: any) => (
@@ -4747,7 +4843,7 @@ function SuggestedGolfSessions({ setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('golf-hub')} style={{ background: 'none', border: 'none', color: '#84cc16', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Golf Training</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
@@ -4779,7 +4875,7 @@ function RugbyHub({ setActiveNav, rugbySessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🏉 Rugby</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track matches, training and skills</p>
@@ -4866,7 +4962,7 @@ function LogRugby({ setActiveNav, rugbySessions, setRugbySessions, addSocialPost
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('rugby-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Rugby Session</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track your match or training</p>
@@ -4927,7 +5023,7 @@ function RugbyStats({ setActiveNav, rugbySessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('rugby-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Rugby Stats</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your performance from logged sessions</p>
@@ -5050,7 +5146,7 @@ function SuggestedRugbySessions({ setActiveNav }: any) {
     const cat = drills[selected]
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-        <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
           <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
           <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 24px' }}>{cat.emoji} {selected}</h1>
           {cat.sections.map((section: any) => (
@@ -5076,7 +5172,7 @@ function SuggestedRugbySessions({ setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('rugby-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Rugby Training</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
@@ -5108,7 +5204,7 @@ function CricketHub({ setActiveNav, cricketSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🏏 Cricket</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track batting, bowling and fielding</p>
@@ -5197,7 +5293,7 @@ function LogCricket({ setActiveNav, cricketSessions, setCricketSessions, addSoci
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('cricket-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Cricket Session</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track your batting, bowling or fielding</p>
@@ -5279,7 +5375,7 @@ function CricketStats({ setActiveNav, cricketSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('cricket-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Cricket Stats</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your performance from logged sessions</p>
@@ -5415,7 +5511,7 @@ function SuggestedCricketSessions({ setActiveNav }: any) {
     const cat = drills[selected]
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-        <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
           <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
           <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 24px' }}>{cat.emoji} {selected}</h1>
           {cat.sections.map((section: any) => (
@@ -5441,7 +5537,7 @@ function SuggestedCricketSessions({ setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('cricket-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Cricket Training</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
@@ -5472,7 +5568,7 @@ function CyclingHub({ setActiveNav, cyclingSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🚴 Cycling</h1>
@@ -5517,7 +5613,7 @@ function CyclingStats({ setActiveNav, cyclingSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('cycling-hub')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Cycling Stats</h1>
@@ -5596,7 +5692,7 @@ function CyclingRecords({ setActiveNav, cyclingSessions }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('cycling-hub')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Cycling Records</h1>
@@ -5635,7 +5731,7 @@ function SuggestedCyclingSessions({ setActiveNav, setSelectedCyclingCategory }: 
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('cycling-hub')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>Cycling Training</h1>
@@ -5802,7 +5898,7 @@ const data = sessionData[category]
 
 return (
   <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-    <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+    <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
       <button onClick={() => setActiveNav('cycling-plans')} style={{ background: 'none', border: 'none', color: data.color, fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
       <h1 style={{ fontSize: '28px', fontWeight: '900' }}>{data.emoji} {category}</h1>
@@ -6383,7 +6479,7 @@ const avgIntensity = totalSessions > 0
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('boxing-hub')} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Boxing Stats</h1>
@@ -6505,7 +6601,7 @@ function SuggestedBoxingSessions({ setActiveNav, setSelectedBoxingCategory }: an
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('boxing-hub')} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>Boxing Training</h1>
@@ -6722,7 +6818,7 @@ function BoxingSessionDetail({ category, setActiveNav }: any) {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('boxing-plans')} style={{ background: 'none', border: 'none', color: data.color, fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>
           ← Back
         </button>
@@ -6845,7 +6941,7 @@ function LogBasketball({ setActiveNav, basketballSessions, setBasketballSessions
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
-      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
         <button onClick={() => setActiveNav('basketball-hub')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
 
         <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>Log Basketball</h1>
@@ -6981,7 +7077,7 @@ function SportHubTemplate({ setActiveNav, title, emoji, color, options }: any) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: `radial-gradient(circle, ${color}25 0%, transparent 70%)`, pointerEvents: 'none' }} />
-      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh' }}>
+      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ padding: '50px 24px 8px' }}>
           <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
@@ -7021,7 +7117,7 @@ function FootballHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh' }}>
+      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ padding: '50px 24px 8px' }}>
           <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#22c55e', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
@@ -7049,7 +7145,7 @@ function FootballHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) 
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '430px', background: '#0d0d1a', borderTop: '1px solid #1e1e30', display: 'flex', justifyContent: 'space-around', padding: '12px 0 20px', zIndex: 100 }}>
         {[{ id: 'home', label: 'Home', emoji: '🏠' }, { id: 'sports', label: 'Sports', emoji: '🏅' }, { id: 'track', label: 'Track', emoji: '📈' }, { id: 'social', label: 'Social', emoji: '👥' }, { id: 'profile', label: 'Profile', emoji: '👤' }].map((item) => (
-          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
+          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
             <span style={{ fontSize: '20px' }}>{item.emoji}</span>
             <span style={{ fontSize: '10px', fontWeight: '600', color: activeNav === item.id ? '#a855f7' : '#555' }}>{item.label}</span>
           </button>
@@ -7088,7 +7184,7 @@ function TrackPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh' }}>
+      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ padding: '50px 24px 24px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: '800', margin: 0 }}>Track</h1>
           <p style={{ color: '#666', fontSize: '14px', margin: '6px 0 0' }}>Select a sport to log or track</p>
@@ -7128,7 +7224,7 @@ function TrackPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '430px', background: '#0d0d1a', borderTop: '1px solid #1e1e30', display: 'flex', justifyContent: 'space-around', padding: '12px 0 20px', zIndex: 100 }}>
         {[{ id: 'home', label: 'Home', emoji: '🏠' }, { id: 'sports', label: 'Sports', emoji: '🏅' }, { id: 'track', label: 'Track', emoji: '📈' }, { id: 'social', label: 'Social', emoji: '👥' }, { id: 'profile', label: 'Profile', emoji: '👤' }].map((item) => (
-          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
+          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
             <span style={{ fontSize: '20px' }}>{item.emoji}</span>
             <span style={{ fontSize: '10px', fontWeight: '600', color: activeNav === item.id ? '#a855f7' : '#555' }}>{item.label}</span>
           </button>
@@ -7192,7 +7288,7 @@ Cricket: 'cricket',
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh' }}>
+      <div style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ padding: '50px 24px 20px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 4px' }}>Sports News</h1>
           <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Latest from your sports</p>
@@ -7270,7 +7366,7 @@ Cricket: 'cricket',
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '430px', background: '#0d0d1a', borderTop: '1px solid #1e1e30', display: 'flex', justifyContent: 'space-around', padding: '12px 0 20px', zIndex: 100 }}>
         {[{ id: 'home', label: 'Home', emoji: '🏠' }, { id: 'sports', label: 'Sports', emoji: '🏅' }, { id: 'track', label: 'Track', emoji: '📈' }, { id: 'social', label: 'Social', emoji: '👥' }, { id: 'profile', label: 'Profile', emoji: '👤' }].map((item) => (
-          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
+          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
             <span style={{ fontSize: '20px' }}>{item.emoji}</span>
             <span style={{ fontSize: '10px', fontWeight: '600', color: activeNavLocal === item.id ? '#a855f7' : '#555' }}>{item.label}</span>
           </button>
@@ -7841,11 +7937,27 @@ date: new Date().toISOString().split('T')[0]
 
 const todayStr = new Date().toISOString().split('T')[0]
 
+const getWeekStart = () => {
+  const d = new Date()
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+  return new Date(d.setDate(diff)).toISOString().split('T')[0]
+}
+const weekStart = getWeekStart()
+
+const isThisWeek = (dateStr: string) => dateStr >= weekStart
 
 const totalSessions =
-  tennisSessions.filter((s: any) => s.date === todayStr).length +
-  runningSessions.filter((s: any) => s.date === todayStr).length +
-  swimmingSessions.filter((s: any) => s.date === todayStr).length
+  tennisSessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length +
+  runningSessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length +
+  swimmingSessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length +
+  basketballSessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length +
+  boxingSessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length +
+  cyclingSessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length +
+  golfSessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length +
+  rugbySessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length +
+  cricketSessions.filter((s: any) => isThisWeek(s.date || s.created_at?.split('T')[0])).length
+
 const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 100), 100)
 
 
@@ -7894,7 +8006,7 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
 
       {/* Scrollable content */}
       <div
-        style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh' }}
+        style={{ paddingBottom: '90px', overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch' }}
       >
         {/* Header */}
         <div style={{ padding: '50px 24px 24px' }}>
@@ -8009,36 +8121,38 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
             }}
           >
             {sports
-              .filter((s) => s.available)
-              .map((sport) => (
-                <div
-                  key={sport.name}
-                  style={{
-                    minWidth: '80px',
-                    background: '#13131f',
-                    border: `1.5px solid ${sport.color}40`,
-                    borderRadius: '16px',
-                    padding: '14px 10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    boxShadow: `0 0 12px ${sport.color}20`,
-                  }}
-                >
-                  <span style={{ fontSize: '24px' }}>{sport.emoji}</span>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      color: '#aaa',
-                      fontWeight: '600',
-                    }}
-                  >
-                    {sport.name}
-                  </span>
-                </div>
-              ))}
+  .filter((s) => s.available)
+  .map((sport) => (
+    <div
+      key={sport.name}
+      onClick={() => setActiveNav(sport.name.toLowerCase() + '-hub')}
+      onTouchStart={() => setActiveNav(sport.name.toLowerCase() + '-hub')}
+      style={{
+        minWidth: '80px',
+        background: '#13131f',
+        border: `1.5px solid ${sport.color}40`,
+        borderRadius: '16px',
+        padding: '14px 10px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '8px',
+        cursor: 'pointer',
+        boxShadow: `0 0 12px ${sport.color}20`,
+      }}
+    >
+      <span style={{ fontSize: '24px' }}>{sport.emoji}</span>
+      <span
+        style={{
+          fontSize: '11px',
+          color: '#aaa',
+          fontWeight: '600',
+        }}
+      >
+        {sport.name}
+      </span>
+    </div>
+  ))}
           </div>
         </div>
 
