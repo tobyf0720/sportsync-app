@@ -14,7 +14,12 @@ const sports = [
   { name: 'Tennis', emoji: '🎾', color: '#eab308', available: true },
   { name: 'Running', emoji: '🏃', color: '#06b6d4', available: true },
   { name: 'Swimming', emoji: '🏊', color: '#3b82f6', available: true },
-  { name: 'Basketball', emoji: '🏀', color: '#f97316', available: false },
+  { name: 'Basketball', emoji: '🏀', color: '#f97316', available: true },
+  { name: 'Cycling', emoji: '🚴', color: '#10b981', available: true },
+{ name: 'Golf', emoji: '⛳', color: '#84cc16', available: true },
+{ name: 'Boxing', emoji: '🥊', color: '#ef4444', available: true },
+{ name: 'Rugby', emoji: '🏉', color: '#f59e0b', available: true },
+{ name: 'Cricket', emoji: '🏏', color: '#06b6d4', available: true },
 ];
 
 const suggestedWorkouts = [
@@ -51,7 +56,25 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('football_sessions').insert({
+        user_id: session.user.id,
+        session_type: sessionType,
+        match_type: matchType,
+        training_context: trainingContext,
+        duration: parseInt(duration) || 0,
+        goals: parseInt(goals) || 0,
+        assists: parseInt(assists) || 0,
+        saves: parseInt(saves) || 0,
+        blocks: parseInt(blocks) || 0,
+        tackles: parseInt(tackles) || 0,
+        yellow_cards: parseInt(yellowCards) || 0,
+        red_cards: parseInt(redCards) || 0,
+        notes
+      })
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -218,7 +241,7 @@ function LogTennisSession({ setActiveNav, tennisSessions, setTennisSessions, add
   const [notes, setNotes] = useState('')
   const [saved, setSaved] = useState(false)
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newSession = {
       id: Date.now(),
       sessionType,
@@ -229,10 +252,24 @@ function LogTennisSession({ setActiveNav, tennisSessions, setTennisSessions, add
       backhands: parseInt(backhands) || 0,
       volleys: parseInt(volleys) || 0,
       notes,
-      date: 'Today'
+      date: new Date().toISOString().split('T')[0]
     }
   
     setTennisSessions([newSession, ...tennisSessions])
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('tennis_sessions').insert({
+        user_id: session.user.id,
+        session_type: sessionType,
+        duration: parseInt(duration) || 0,
+        focus,
+        serves: parseInt(serves) || 0,
+        forehands: parseInt(forehands) || 0,
+        backhands: parseInt(backhands) || 0,
+        volleys: parseInt(volleys) || 0,
+        notes
+      })
+    }
     addSocialPost({
       sport: 'Tennis',
       sportColor: '#eab308',
@@ -424,6 +461,662 @@ function TennisMatches({ setActiveNav, tennisResults, setTennisResults }: { setA
             <div style={{ display: 'flex', gap: '14px', marginTop: '10px', color: '#aaa', fontSize: '12px' }}>
               <span>🎯 {result.aces} aces</span>
               <span>⚠️ {result.doubleFaults} double faults</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+function BasketballStats({ setActiveNav, basketballSessions }: any) {
+  const gameSessions = basketballSessions.filter((s: any) => s.sessionType === 'Game')
+
+  const totalSessions = basketballSessions.length
+  const totalGames = gameSessions.length
+  const totalPoints = basketballSessions.reduce((sum: number, s: any) => sum + (s.points || 0), 0)
+  const totalAssists = basketballSessions.reduce((sum: number, s: any) => sum + (s.assists || 0), 0)
+  const totalRebounds = basketballSessions.reduce((sum: number, s: any) => sum + (s.rebounds || 0), 0)
+  const totalSteals = basketballSessions.reduce((sum: number, s: any) => sum + (s.steals || 0), 0)
+  const totalBlocks = basketballSessions.reduce((sum: number, s: any) => sum + (s.blocks || 0), 0)
+  const shotsMade = basketballSessions.reduce((sum: number, s: any) => sum + (s.shotsMade || 0), 0)
+  const shotsTaken = basketballSessions.reduce((sum: number, s: any) => sum + (s.shotsTaken || 0), 0)
+
+  const ppg = totalGames > 0 ? (totalPoints / totalGames).toFixed(1) : '0.0'
+  const apg = totalGames > 0 ? (totalAssists / totalGames).toFixed(1) : '0.0'
+  const rpg = totalGames > 0 ? (totalRebounds / totalGames).toFixed(1) : '0.0'
+  const fgPct = shotsTaken > 0 ? Math.round((shotsMade / shotsTaken) * 100) : 0
+
+  const bestGame = gameSessions.length > 0
+    ? gameSessions.reduce((best: any, s: any) => (s.points || 0) > (best.points || 0) ? s : best, gameSessions[0])
+    : null
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(249,115,22,0.16) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('basketball-hub')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Basketball Stats</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your performance across games and training</p>
+
+        <div style={{ background: '#13131f', border: '1px solid #f9731625', borderLeft: '4px solid #f97316', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#f97316', fontWeight: '900', marginBottom: '12px' }}>OVERVIEW</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            {[
+              { label: 'Sessions', value: totalSessions, color: '#f97316' },
+              { label: 'Games', value: totalGames, color: '#22c55e' },
+              { label: 'FG%', value: `${fgPct}%`, color: '#06b6d4' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#0a0a0f', border: `1px solid ${stat.color}25`, borderRadius: '13px', padding: '13px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '22px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '10px', fontWeight: '700', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #22c55e25', borderLeft: '4px solid #22c55e', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#22c55e', fontWeight: '900', marginBottom: '12px' }}>GAME AVERAGES</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            {[
+              { label: 'PPG', value: ppg, color: '#f97316' },
+              { label: 'APG', value: apg, color: '#06b6d4' },
+              { label: 'RPG', value: rpg, color: '#a855f7' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#0a0a0f', border: `1px solid ${stat.color}25`, borderRadius: '13px', padding: '13px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '22px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '10px', fontWeight: '700', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #06b6d425', borderLeft: '4px solid #06b6d4', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#06b6d4', fontWeight: '900', marginBottom: '12px' }}>TOTALS</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {[
+              { label: 'Points', value: totalPoints, color: '#f97316' },
+              { label: 'Assists', value: totalAssists, color: '#06b6d4' },
+              { label: 'Rebounds', value: totalRebounds, color: '#a855f7' },
+              { label: 'Steals', value: totalSteals, color: '#22c55e' },
+              { label: 'Blocks', value: totalBlocks, color: '#ef4444' },
+              { label: 'Shots', value: `${shotsMade}/${shotsTaken}`, color: '#eab308' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#0a0a0f', border: `1px solid ${stat.color}25`, borderRadius: '13px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '20px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '10px', fontWeight: '700', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #a855f725', borderLeft: '4px solid #a855f7', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ fontSize: '13px', color: '#a855f7', fontWeight: '900', marginBottom: '12px' }}>BEST GAME</div>
+
+          {bestGame ? (
+            <div>
+              <div style={{ fontSize: '24px', fontWeight: '900', color: '#f97316' }}>{bestGame.points || 0} points</div>
+              <div style={{ color: '#aaa', fontSize: '13px', marginTop: '6px' }}>
+                {bestGame.assists || 0} assists · {bestGame.rebounds || 0} rebounds · {bestGame.date || 'No date'}
+              </div>
+            </div>
+          ) : (
+            <div style={{ color: '#666', fontSize: '13px' }}>Log a game to see your best performance.</div>
+          )}
+        </div>
+
+        <h2 style={{ fontSize: '18px', fontWeight: '900', margin: '0 0 14px' }}>Recent Sessions</h2>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {basketballSessions.length === 0 && (
+            <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '14px', padding: '16px', color: '#666' }}>
+              No basketball sessions logged yet.
+            </div>
+          )}
+
+          {basketballSessions.slice(0, 6).map((session: any) => (
+            <div key={session.id} style={{ background: '#13131f', border: '1px solid #f9731625', borderLeft: '4px solid #f97316', borderRadius: '14px', padding: '14px 16px' }}>
+              <div style={{ fontWeight: '800', fontSize: '14px' }}>{session.sessionType || 'Basketball Session'} · {session.focus || 'General'}</div>
+              <div style={{ color: '#666', fontSize: '12px', marginTop: '4px' }}>
+                {session.sessionType === 'Game'
+                  ? `${session.points || 0} pts · ${session.assists || 0} ast · ${session.rebounds || 0} reb`
+                  : `${session.duration || 0} mins · ${session.notes || 'No notes'}`}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+function BasketballFixtures({ setActiveNav }: any) {
+  const [tab, setTab] = useState<'upcoming' | 'results'>('upcoming')
+  const [showAdd, setShowAdd] = useState(false)
+  const [showResult, setShowResult] = useState<number | null>(null)
+
+  const [fixtures, setFixtures] = useState<any[]>(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('basketballFixtures')
+  return saved ? JSON.parse(saved) : []
+})
+  const [results, setResults] = useState<any[]>(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('basketballResults')
+  return saved ? JSON.parse(saved) : []
+})
+useEffect(() => {
+  localStorage.setItem('basketballFixtures', JSON.stringify(fixtures))
+}, [fixtures])
+
+useEffect(() => {
+  localStorage.setItem('basketballResults', JSON.stringify(results))
+}, [results])
+
+  const [opponent, setOpponent] = useState('')
+  const [gameType, setGameType] = useState('')
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
+
+  const [yourScore, setYourScore] = useState('')
+  const [theirScore, setTheirScore] = useState('')
+  const [points, setPoints] = useState('')
+  const [assists, setAssists] = useState('')
+  const [rebounds, setRebounds] = useState('')
+
+  const addFixture = () => {
+    if (!opponent || !gameType || !date) return
+
+    setFixtures([
+      { id: Date.now(), opponent, gameType, date, time },
+      ...fixtures
+    ])
+
+    setOpponent('')
+    setGameType('')
+    setDate('')
+    setTime('')
+    setShowAdd(false)
+  }
+
+  const saveResult = (fixture: any) => {
+    const ys = parseInt(yourScore) || 0
+    const ts = parseInt(theirScore) || 0
+
+    const outcome = ys > ts ? 'win' : ys < ts ? 'loss' : 'draw'
+    const color = outcome === 'win' ? '#22c55e' : outcome === 'loss' ? '#ef4444' : '#f59e0b'
+
+    setResults([
+      {
+        ...fixture,
+        yourScore: ys,
+        theirScore: ts,
+        outcome,
+        color,
+        points: parseInt(points) || 0,
+        assists: parseInt(assists) || 0,
+        rebounds: parseInt(rebounds) || 0
+      },
+      ...results
+    ])
+
+    setFixtures(fixtures.filter((f) => f.id !== fixture.id))
+    setYourScore('')
+    setTheirScore('')
+    setPoints('')
+    setAssists('')
+    setRebounds('')
+    setShowResult(null)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('basketball-hub')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
+          <div>
+            <h1 style={{ fontSize: '28px', fontWeight: '900', margin: 0 }}>Basketball Fixtures</h1>
+            <p style={{ color: '#666', fontSize: '14px', margin: '4px 0 0' }}>Games and results</p>
+          </div>
+
+          {tab === 'upcoming' && (
+            <button onClick={() => setShowAdd(!showAdd)} style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', borderRadius: '12px', color: 'white', padding: '10px 14px', fontSize: '13px', fontWeight: '800', cursor: 'pointer' }}>
+              + Add
+            </button>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', background: '#13131f', borderRadius: '12px', padding: '4px', marginBottom: '20px' }}>
+          {(['upcoming', 'results'] as const).map((t) => (
+            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, background: tab === t ? '#1e1e35' : 'none', border: tab === t ? '1px solid #2a2a40' : '1px solid transparent', borderRadius: '10px', color: tab === t ? 'white' : '#555', padding: '10px', fontSize: '13px', fontWeight: '800', cursor: 'pointer', textTransform: 'capitalize' }}>
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'upcoming' && showAdd && (
+          <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '18px', marginBottom: '18px' }}>
+            <input value={opponent} onChange={(e) => setOpponent(e.target.value)} placeholder="Opponent/team name" style={{ width: '100%', background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', marginBottom: '10px', boxSizing: 'border-box' }} />
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+              {['5v5', '3v3', '1v1', 'Scrimmage'].map((type) => (
+                <button key={type} onClick={() => setGameType(type)} style={{ background: gameType === type ? '#f9731620' : '#0a0a0f', border: `1.5px solid ${gameType === type ? '#f97316' : '#1e1e30'}`, borderRadius: '8px', color: gameType === type ? '#f97316' : '#666', padding: '8px 12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                  {type}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+              <input value={date} onChange={(e) => setDate(e.target.value)} placeholder="Date" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', boxSizing: 'border-box' }} />
+              <input value={time} onChange={(e) => setTime(e.target.value)} placeholder="Time" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', boxSizing: 'border-box' }} />
+            </div>
+
+            <button onClick={addFixture} style={{ width: '100%', background: 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', borderRadius: '10px', color: 'white', padding: '12px', fontWeight: '900', cursor: 'pointer' }}>
+              Add Fixture
+            </button>
+          </div>
+        )}
+
+        {tab === 'upcoming' && fixtures.length === 0 && (
+          <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '18px', color: '#666' }}>
+            No upcoming basketball fixtures yet.
+          </div>
+        )}
+
+        {tab === 'upcoming' && fixtures.map((fixture) => (
+          <div key={fixture.id} style={{ background: '#13131f', border: '1px solid #1e1e30', borderLeft: '4px solid #f97316', borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: '800' }}>vs {fixture.opponent}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{fixture.gameType} · {fixture.date} · {fixture.time}</div>
+              </div>
+
+              <button onClick={() => setShowResult(showResult === fixture.id ? null : fixture.id)} style={{ background: '#22c55e15', border: '1px solid #22c55e40', borderRadius: '8px', color: '#22c55e', padding: '7px 10px', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}>
+                Log Result
+              </button>
+            </div>
+
+            {showResult === fixture.id && (
+              <div style={{ borderTop: '1px solid #1e1e30', marginTop: '14px', paddingTop: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                  <input value={yourScore} onChange={(e) => setYourScore(e.target.value)} placeholder="Your score" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', boxSizing: 'border-box' }} />
+                  <input value={theirScore} onChange={(e) => setTheirScore(e.target.value)} placeholder="Their score" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', boxSizing: 'border-box' }} />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                  <input value={points} onChange={(e) => setPoints(e.target.value)} placeholder="Points" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '10px', boxSizing: 'border-box' }} />
+                  <input value={assists} onChange={(e) => setAssists(e.target.value)} placeholder="Assists" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '10px', boxSizing: 'border-box' }} />
+                  <input value={rebounds} onChange={(e) => setRebounds(e.target.value)} placeholder="Rebounds" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '10px', boxSizing: 'border-box' }} />
+                </div>
+
+                <button onClick={() => saveResult(fixture)} style={{ width: '100%', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '10px', color: 'white', padding: '12px', fontWeight: '900', cursor: 'pointer' }}>
+                  Save Result
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {tab === 'results' && results.length === 0 && (
+          <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '18px', color: '#666' }}>
+            No basketball results yet.
+          </div>
+        )}
+
+        {tab === 'results' && results.map((result, i) => (
+          <div key={i} style={{ background: '#13131f', border: `1px solid ${result.color}25`, borderLeft: `4px solid ${result.color}`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div>
+                <div style={{ fontWeight: '800' }}>vs {result.opponent}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{result.gameType} · {result.date}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: '900', fontSize: '22px' }}>{result.yourScore}–{result.theirScore}</div>
+                <div style={{ color: result.color, fontSize: '11px', fontWeight: '900' }}>{result.outcome.toUpperCase()}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', color: '#aaa', fontSize: '12px', flexWrap: 'wrap' }}>
+              <span>🏀 {result.points} pts</span>
+              <span>🅰️ {result.assists} ast</span>
+              <span>💪 {result.rebounds} reb</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+function SuggestedBasketballSessions({ setActiveNav, setSelectedBasketballCategory }: any) {
+  const categories = [
+    { label: 'Shooting', emoji: '🎯', color: '#f97316', desc: 'Improve form, range, catch-and-shoot and free throws' },
+    { label: 'Ball Handling', emoji: '🌀', color: '#06b6d4', desc: 'Handles, weak hand, combos, pressure control' },
+    { label: 'Finishing', emoji: '💥', color: '#22c55e', desc: 'Layups, contact finishes, footwork and floaters' },
+    { label: 'Defence', emoji: '🛡️', color: '#a855f7', desc: 'Footwork, closeouts, slides and 1v1 defending' },
+    { label: 'Conditioning', emoji: '⚡', color: '#ef4444', desc: 'Basketball fitness, sprints, agility and explosiveness' },
+    { label: 'Team Training', emoji: '👥', color: '#eab308', desc: 'Passing, spacing, pick and roll, game IQ' },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('basketball-hub')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>Basketball Training</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {categories.map((cat) => (
+            <div
+              key={cat.label}
+              onClick={() => {
+                setSelectedBasketballCategory(cat.label)
+                setActiveNav('basketball-session-detail')
+              }}
+              style={{ background: '#13131f', border: `1px solid ${cat.color}25`, borderLeft: `4px solid ${cat.color}`, borderRadius: '18px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+            >
+              <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: `${cat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>{cat.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '900', fontSize: '16px' }}>{cat.label}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>{cat.desc}</div>
+              </div>
+              <div style={{ color: cat.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+function BasketballSessionDetail({ category, setActiveNav }: any) {
+  const sessionData: any = {
+    Shooting: {
+      emoji: '🎯',
+      color: '#f97316',
+      sections: [
+        {
+          title: 'Form & Rhythm',
+          drills: [
+            {
+              name: 'Close Form Shooting',
+              setup: 'Stand 2–3 metres from the basket and shoot with perfect technique. Focus on balance, elbow position, follow-through and soft touch.',
+              reps: '50 makes',
+              tip: 'Do not move back until your form feels smooth. This builds your base.'
+            },
+            {
+              name: '5 Spot Mid-Range',
+              setup: 'Shoot from both corners, both wings and the top. Take your time and reset your feet before every shot.',
+              reps: '5 makes from each spot',
+              tip: 'Keep your feet square and land in the same place you jumped from.'
+            }
+          ]
+        },
+        {
+          title: 'Game-Speed Shooting',
+          drills: [
+            {
+              name: 'Catch and Shoot',
+              setup: 'Start without the ball, move into space, catch, set your feet quickly and shoot.',
+              reps: '30 shots',
+              tip: 'Your feet should be ready before the ball reaches your hands.'
+            },
+            {
+              name: 'Free Throw Pressure',
+              setup: 'Shoot 10 free throws at the end of the session while tired. Record your score.',
+              reps: '3 rounds of 10',
+              tip: 'Use the same routine every time. Free throws are about rhythm.'
+            }
+          ]
+        }
+      ]
+    },
+
+    'Ball Handling': {
+      emoji: '🌀',
+      color: '#06b6d4',
+      sections: [
+        {
+          title: 'Control',
+          drills: [
+            {
+              name: 'Pound Dribbles',
+              setup: 'Dribble hard at waist height using one hand. Keep your knees bent, chest up and eyes forward.',
+              reps: '2 mins each hand',
+              tip: 'The ball should feel controlled, not loose. Strong dribbles are harder to steal.'
+            },
+            {
+              name: 'Weak Hand Only',
+              setup: 'Use only your weaker hand for basic dribbles, crossovers and layup approaches.',
+              reps: '8 minutes',
+              tip: 'Weak hand work feels awkward at first, but it makes you much harder to defend.'
+            }
+          ]
+        },
+        {
+          title: 'Game Moves',
+          drills: [
+            {
+              name: 'Cone Attack',
+              setup: 'Place 5 cones in a line. Attack each cone with a different move: crossover, between legs, behind back, hesitation.',
+              reps: '5 rounds',
+              tip: 'Change pace after the move. The burst is what beats the defender.'
+            },
+            {
+              name: 'Combo Into Finish',
+              setup: 'Use two dribble moves, then attack the basket and finish with either hand.',
+              reps: '20 finishes',
+              tip: 'Do not do moves for no reason. Each move should create space.'
+            }
+          ]
+        }
+      ]
+    },
+
+    Finishing: {
+      emoji: '💥',
+      color: '#22c55e',
+      sections: [
+        {
+          title: 'Layup Package',
+          drills: [
+            {
+              name: 'Both-Hand Layups',
+              setup: 'Alternate right-hand and left-hand layups from both sides of the basket.',
+              reps: '25 makes each hand',
+              tip: 'Being able to finish with both hands makes you much more unpredictable.'
+            },
+            {
+              name: 'Reverse Layups',
+              setup: 'Attack the baseline and finish on the opposite side of the rim.',
+              reps: '20 makes',
+              tip: 'Use the rim to protect the ball from defenders.'
+            }
+          ]
+        },
+        {
+          title: 'Advanced Finishing',
+          drills: [
+            {
+              name: 'Euro-Step Finishes',
+              setup: 'Attack the basket, step one way, then step the other way to finish around an imaginary defender.',
+              reps: '15 each side',
+              tip: 'Sell the first step with your shoulders, not just your feet.'
+            },
+            {
+              name: 'Contact Finishing',
+              setup: 'Have a partner bump you lightly with a pad or body contact as you finish.',
+              reps: '20 finishes',
+              tip: 'Stay balanced. Do not fade away from contact.'
+            }
+          ]
+        }
+      ]
+    },
+
+    Defence: {
+      emoji: '🛡️',
+      color: '#a855f7',
+      sections: [
+        {
+          title: 'Footwork',
+          drills: [
+            {
+              name: 'Defensive Slides',
+              setup: 'Slide from sideline to sideline while staying low. Do not let your feet cross.',
+              reps: '5 sets of 30 seconds',
+              tip: 'Low hips and active hands make you much harder to beat.'
+            },
+            {
+              name: 'Closeout Drill',
+              setup: 'Sprint towards a shooter, slow down with short choppy steps, hands high, then slide to cut off the drive.',
+              reps: '12 reps',
+              tip: 'Do not fly past the shooter. Arrive under control.'
+            }
+          ]
+        },
+        {
+          title: '1v1 Defence',
+          drills: [
+            {
+              name: 'Mirror Drill',
+              setup: 'Partner moves side to side while you mirror them in a defensive stance.',
+              reps: '5 rounds of 45 seconds',
+              tip: 'React with your feet first. Do not reach.'
+            },
+            {
+              name: 'Recovery Sprint',
+              setup: 'Start beaten by one step, sprint back into position and force the attacker wide.',
+              reps: '10 reps',
+              tip: 'Recover the angle before trying to block or steal.'
+            }
+          ]
+        }
+      ]
+    },
+
+    Conditioning: {
+      emoji: '⚡',
+      color: '#ef4444',
+      sections: [
+        {
+          title: 'Basketball Fitness',
+          drills: [
+            {
+              name: 'Suicide Runs',
+              setup: 'Sprint to each court line and back. Rest fully between sets so every rep is high quality.',
+              reps: '5 rounds',
+              tip: 'Basketball fitness is repeated sprints, not slow jogging.'
+            },
+            {
+              name: 'Shuttle Sprints',
+              setup: 'Sprint 10 metres, back, 20 metres, back, 30 metres, back.',
+              reps: '4 rounds',
+              tip: 'Explode out of every turn. Low body position helps acceleration.'
+            }
+          ]
+        },
+        {
+          title: 'Explosiveness',
+          drills: [
+            {
+              name: 'Jump Circuit',
+              setup: 'Do squat jumps, lateral bounds and single-leg hops.',
+              reps: '3 rounds',
+              tip: 'Land softly. Control matters more than just jumping high.'
+            },
+            {
+              name: 'Defensive Slide Intervals',
+              setup: 'Slide hard for 20 seconds, rest for 20 seconds.',
+              reps: '8 rounds',
+              tip: 'Keep your stance low even when tired.'
+            }
+          ]
+        }
+      ]
+    },
+
+    'Team Training': {
+      emoji: '👥',
+      color: '#eab308',
+      sections: [
+        {
+          title: 'Passing & Movement',
+          drills: [
+            {
+              name: 'Pass and Cut',
+              setup: 'Pass to a teammate, cut hard to the basket, then reset. Practise timing and spacing.',
+              reps: '10 minutes',
+              tip: 'Never stand still after passing. Movement creates opportunities.'
+            },
+            {
+              name: 'Fast Break Passing',
+              setup: 'Run 3-man fast breaks, focusing on quick decisions and accurate passes.',
+              reps: '12 reps',
+              tip: 'Pass ahead of the runner, not directly at them.'
+            }
+          ]
+        },
+        {
+          title: 'Game IQ',
+          drills: [
+            {
+              name: 'Pick and Roll',
+              setup: 'Practise ball handler and screener roles. Read whether to drive, pass, roll or pop.',
+              reps: '15 minutes',
+              tip: 'Wait for the screen to be set before using it.'
+            },
+            {
+              name: 'Small-Sided Scrimmage',
+              setup: 'Play 3v3 or 4v4 with a focus on spacing, communication and quick decisions.',
+              reps: '20 minutes',
+              tip: 'Talk constantly. Good teams communicate before problems happen.'
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  const data = sessionData[category]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('basketball-plans')} style={{ background: 'none', border: 'none', color: data.color, fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+          <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: `2.5px solid ${data.color}`, background: `${data.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', boxShadow: `0 0 18px ${data.color}40` }}>
+            {data.emoji}
+          </div>
+          <div>
+            <h1 style={{ fontSize: '30px', fontWeight: '900', margin: 0 }}>{category}</h1>
+            <p style={{ color: '#666', fontSize: '13px', margin: '4px 0 0' }}>Basketball development drills</p>
+          </div>
+        </div>
+
+        {data.sections.map((section: any) => (
+          <div key={section.title} style={{ marginBottom: '26px' }}>
+            <h2 style={{ color: data.color, fontSize: '13px', fontWeight: '900', letterSpacing: '1px', margin: '0 0 14px', textTransform: 'uppercase' }}>
+              {section.title}
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {section.drills.map((drill: any) => (
+                <div key={drill.name} style={{ background: '#13131f', border: `1px solid ${data.color}25`, borderLeft: `4px solid ${data.color}`, borderRadius: '16px', padding: '16px 18px' }}>
+                  <div style={{ fontWeight: '900', fontSize: '15px', marginBottom: '8px' }}>{drill.name}</div>
+                  <div style={{ color: '#aaa', fontSize: '13px', lineHeight: '1.5', marginBottom: '10px' }}>{drill.setup}</div>
+                  <div style={{ display: 'inline-block', background: `${data.color}18`, border: `1px solid ${data.color}35`, color: data.color, borderRadius: '999px', padding: '5px 10px', fontSize: '11px', fontWeight: '900', marginBottom: '10px' }}>
+                    📋 {drill.reps}
+                  </div>
+                  <div style={{ background: '#0a0a0f', border: `1px solid ${data.color}25`, borderRadius: '12px', padding: '10px', color: '#888', fontSize: '12px', lineHeight: '1.5' }}>
+                    <strong style={{ color: data.color }}>💡 Coaching tip:</strong> {drill.tip}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}
@@ -1123,7 +1816,7 @@ function LogSwim({ setActiveNav, swimmingSessions, setSwimmingSessions, swimming
     return Math.round(d / p)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const d = parseFloat(distance) || 0
     const t = parseFloat(time) || 0
     const pace = calculatePace()
@@ -1139,10 +1832,27 @@ function LogSwim({ setActiveNav, swimmingSessions, setSwimmingSessions, swimming
       lengths: calculateLengths(),
       effort,
       notes,
-      date: 'Today'
+      date: new Date().toISOString().split('T')[0]
     }
 
     setSwimmingSessions([newSwim, ...swimmingSessions])
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('swimming_sessions').insert({
+        user_id: session.user.id,
+        swim_type: swimType,
+        stroke,
+        pool_length: parseFloat(poolLength) || 25,
+        distance: d,
+        time: t,
+        pace,
+        lengths: calculateLengths(),
+        effort,
+        notes
+      })
+    }
+
     addSocialPost({
       sport: 'Swimming',
       sportColor: '#3b82f6',
@@ -1596,7 +2306,7 @@ function LogRun({ setActiveNav, runningSessions, setRunningSessions, runningPRs,
     return `${mins}:${secs.toString().padStart(2, '0')}/km`
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const d = parseFloat(distance) || 0
     const t = parseFloat(time) || 0
     const pace = calculatePace()
@@ -1610,10 +2320,24 @@ function LogRun({ setActiveNav, runningSessions, setRunningSessions, runningPRs,
       effort,
       surface,
       notes,
-      date: 'Today'
+      date: new Date().toISOString().split('T')[0]
     }
 
     setRunningSessions([newRun, ...runningSessions])
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('running_sessions').insert({
+        user_id: session.user.id,
+        run_type: runType,
+        distance: d,
+        time: t,
+        pace,
+        effort,
+        surface,
+        notes
+      })
+    }
     addSocialPost({
       sport: 'Running',
       sportColor: '#06b6d4',
@@ -2195,8 +2919,7 @@ function SuggestedDrills({ setActiveNav }: { setActiveNav: (nav: string) => void
   )
 }
 
-function ProfilePage({ setActiveNav, tennisSessions, runningSessions, swimmingSessions }: any) {  const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settings'>('activity')
-const [activeNav, setActiveNavLocal] = useState('profile')
+function ProfilePage({ setActiveNav, tennisSessions, runningSessions, swimmingSessions, basketballSessions, boxingSessions, cyclingSessions, golfSessions, rugbySessions, cricketSessions }: any) {const [activeNav, setActiveNavLocal] = useState('profile')
   const [position, setPosition] = useState('Forward')
   const [bio, setBio] = useState(
     localStorage.getItem('userBio') || 'Multi-sport athlete 🎾🏃🏊'
@@ -2240,6 +2963,12 @@ const [activeNav, setActiveNavLocal] = useState('profile')
     ...tennisSessions.map((s: any) => ({ ...s, sport: 'Tennis' })),
     ...runningSessions.map((s: any) => ({ ...s, sport: 'Running' })),
     ...swimmingSessions.map((s: any) => ({ ...s, sport: 'Swimming' })),
+    ...basketballSessions.map((s: any) => ({ ...s, sport: 'Basketball' })),
+    ...boxingSessions.map((s: any) => ({ ...s, sport: 'Boxing' })),
+    ...cyclingSessions.map((s: any) => ({ ...s, sport: 'Cycling' })),
+    ...golfSessions.map((s: any) => ({ ...s, sport: 'Golf' })),
+    ...rugbySessions.map((s: any) => ({ ...s, sport: 'Rugby' })),
+    ...cricketSessions.map((s: any) => ({ ...s, sport: 'Cricket' })),
   ]
   
   const thisWeekSessions = allLoggedSessions.length
@@ -2249,7 +2978,13 @@ const [activeNav, setActiveNavLocal] = useState('profile')
   const totalSessions =
   tennisSessions.length +
   runningSessions.length +
-  swimmingSessions.length
+  swimmingSessions.length +
+  basketballSessions.length +
+  boxingSessions.length +
+  cyclingSessions.length +
+  golfSessions.length +
+  rugbySessions.length +
+  cricketSessions.length
 
 const totalRunningKm = runningSessions.reduce(
   (sum: number, r: any) => sum + (r.distance || 0),
@@ -2269,7 +3004,13 @@ const totalServes = tennisSessions.reduce(
 const sportsUsed =
   (tennisSessions.length > 0 ? 1 : 0) +
   (runningSessions.length > 0 ? 1 : 0) +
-  (swimmingSessions.length > 0 ? 1 : 0)
+  (swimmingSessions.length > 0 ? 1 : 0) +
+  (basketballSessions.length > 0 ? 1 : 0) +
+  (boxingSessions.length > 0 ? 1 : 0) +
+  (cyclingSessions.length > 0 ? 1 : 0) +
+  (golfSessions.length > 0 ? 1 : 0) +
+  (rugbySessions.length > 0 ? 1 : 0) +
+  (cricketSessions.length > 0 ? 1 : 0)
 
 const achievements = [
   {
@@ -2284,7 +3025,10 @@ const achievements = [
     desc: 'Log 100 serves total',
     emoji: '💥',
     earned: totalServes >= 100,
-    color: '#f59e0b'
+    color: '#f59e0b',
+    progress: totalServes,
+    target: 100,
+    unit: 'serves'
   },
   {
     title: 'First Run',
@@ -2328,8 +3072,189 @@ const achievements = [
     earned: totalSessions >= 25,
     color: '#ef4444'
   },
+  ,
+{
+  title: 'Century Club',
+  desc: 'Log 100 sessions',
+  emoji: '💯',
+  earned: totalSessions >= 100,
+  color: '#a855f7'
+},
+{
+  title: '100km Runner',
+  desc: 'Run 100km total',
+  emoji: '⚡',
+  earned: totalRunningKm >= 100,
+  color: '#06b6d4'
+},
+{
+  title: 'Marathon Swimmer',
+  desc: 'Swim 42km total',
+  emoji: '🐬',
+  earned: totalSwimmingKm >= 42,
+  color: '#3b82f6'
+},
+{
+  title: 'Ace Machine',
+  desc: 'Log 500 serves',
+  emoji: '🎾',
+  earned: totalServes >= 500,
+  color: '#eab308'
+},
+{
+  title: 'First Basketball Session',
+  desc: 'Log your first basketball session',
+  emoji: '🏀',
+  earned: basketballSessions.length >= 1,
+  color: '#f97316'
+},
+{
+  title: 'First Game',
+  desc: 'Log your first basketball game',
+  emoji: '🎮',
+  earned: basketballSessions.filter((s: any) => s.sessionType === 'Game').length >= 1,
+  color: '#22c55e'
+},
+{
+  title: '100 Points',
+  desc: 'Score 100 total points',
+  emoji: '💯',
+  earned: basketballSessions.reduce((sum: number, s: any) => sum + (s.points || 0), 0) >= 100,
+  color: '#f97316'
+},
+{
+  title: '50 Assists',
+  desc: 'Record 50 assists',
+  emoji: '🅰️',
+  earned: basketballSessions.reduce((sum: number, s: any) => sum + (s.assists || 0), 0) >= 50,
+  color: '#06b6d4'
+},
+{
+  title: '100 Rebounds',
+  desc: 'Grab 100 rebounds',
+  emoji: '💪',
+  earned: basketballSessions.reduce((sum: number, s: any) => sum + (s.rebounds || 0), 0) >= 100,
+  color: '#a855f7'
+},
+{
+  title: 'Sharpshooter',
+  desc: 'Shoot 50%+ with 50 shots taken',
+  emoji: '🎯',
+  earned:
+    basketballSessions.reduce((sum: number, s: any) => sum + (s.shotsTaken || 0), 0) >= 50 &&
+    (
+      basketballSessions.reduce((sum: number, s: any) => sum + (s.shotsMade || 0), 0) /
+      basketballSessions.reduce((sum: number, s: any) => sum + (s.shotsTaken || 0), 0)
+    ) >= 0.5,
+  color: '#eab308'
+},
+{
+  title: '25 Basketball Sessions',
+  desc: 'Log 25 basketball sessions',
+  emoji: '🔥',
+  earned: basketballSessions.length >= 25,
+  color: '#ef4444'
+},
+{
+  title: 'First Boxing Session',
+  desc: 'Log your first boxing session',
+  emoji: '🥊',
+  earned: boxingSessions.length >= 1,
+  color: '#ef4444'
+},
+{
+  title: '10 Boxing Sessions',
+  desc: 'Log 10 boxing sessions',
+  emoji: '🥊',
+  earned: boxingSessions.length >= 10,
+  color: '#ef4444'
+},
+{
+  title: '100 Rounds',
+  desc: 'Complete 100 boxing rounds',
+  emoji: '🔥',
+  earned: boxingSessions.reduce((sum: number, s: any) => sum + (s.rounds || 0), 0) >= 100,
+  color: '#f97316'
+},
+{
+  title: 'Heavy Bag Beast',
+  desc: 'Complete 25 heavy bag sessions',
+  emoji: '💥',
+  earned: boxingSessions.filter((s: any) => s.sessionType === 'Heavy Bag').length >= 25,
+  color: '#ef4444'
+},
+{
+  title: 'Sparring Specialist',
+  desc: 'Complete 10 sparring sessions',
+  emoji: '🥇',
+  earned: boxingSessions.filter((s: any) => s.sessionType === 'Sparring').length >= 10,
+  color: '#eab308'
+},
+{
+  title: 'Iron Chin',
+  desc: 'Average defence rating of 8+',
+  emoji: '🛡️',
+  earned:
+    boxingSessions.length >= 5 &&
+    (
+      boxingSessions.reduce((sum: number, s: any) => sum + (s.defence || 0), 0)
+      / boxingSessions.length
+    ) >= 8,
+  color: '#06b6d4'
+},
+{
+  title: 'Fight Camp',
+  desc: 'Log 50 boxing sessions',
+  emoji: '🏆',
+  earned: boxingSessions.length >= 50,
+  color: '#22c55e'
+},
+{
+  title: 'First Ride',
+  desc: 'Log your first cycling ride',
+  emoji: '🚴',
+  earned: cyclingSessions.length >= 1,
+  color: '#10b981'
+},
+{
+  title: '10 Cycling Rides',
+  desc: 'Complete 10 rides',
+  emoji: '🚴',
+  earned: cyclingSessions.length >= 10,
+  color: '#10b981'
+},
+{
+  title: 'Century Rider',
+  desc: 'Complete a 100km ride',
+  emoji: '💯',
+  earned: cyclingSessions.some((s: any) => (s.distance || 0) >= 100),
+  color: '#06b6d4'
+},
+{
+  title: '100km Total',
+  desc: 'Ride 100km in total',
+  emoji: '🏆',
+  earned:
+    cyclingSessions.reduce((sum: number, s: any) => sum + (s.distance || 0), 0) >= 100,
+  color: '#f59e0b'
+},
+{
+  title: 'Mountain Goat',
+  desc: 'Climb 1000m elevation in a single ride',
+  emoji: '⛰️',
+  earned: cyclingSessions.some((s: any) => (s.elevation || 0) >= 1000),
+  color: '#a855f7'
+},
+{
+  title: 'Speed Demon',
+  desc: 'Average speed of 30km/h or more',
+  emoji: '⚡',
+  earned: cyclingSessions.some((s: any) => (s.avgSpeed || 0) >= 30),
+  color: '#ef4444'
+},
 ]
 
+const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settings'>('activity')
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -2483,8 +3408,14 @@ const achievements = [
               <div key={i} style={{ background: '#13131f', border: `1px solid ${ach.earned ? ach.color + '40' : '#1e1e30'}`, borderRadius: '16px', padding: '18px', textAlign: 'center', opacity: ach.earned ? 1 : 0.4 }}>
                 <div style={{ fontSize: '32px', marginBottom: '8px' }}>{ach.emoji}</div>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '4px' }}>{ach.title}</div>
-                <div style={{ color: '#555', fontSize: '11px', lineHeight: '1.4' }}>{ach.desc}</div>
-                {ach.earned && <div style={{ marginTop: '8px', fontSize: '10px', color: ach.color, fontWeight: '700' }}>✓ EARNED</div>}
+                <div style={{ color: '#555', fontSize: '11px', lineHeight: '1.4' }}>
+  {ach.desc}
+</div>
+{ach.earned && (
+  <div style={{ marginTop: '8px', fontSize: '10px', color: ach.color, fontWeight: '700' }}>
+    ✓ EARNED
+  </div>
+)}
               </div>
             ))}
           </div>
@@ -2518,8 +3449,9 @@ const achievements = [
               { label: 'Notifications', desc: 'Manage your alerts', emoji: '🔔' },
               { label: 'Privacy', desc: 'Control who sees your data', emoji: '🔒' },
               { label: 'Connected Apps', desc: 'Manage integrations', emoji: '🔗' },
+{ label: 'Sign Out', desc: 'Log out of your account', emoji: '🚪' },
             ].map((item) => (
-              <div key={item.label} style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '14px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+              <div key={item.label} onClick={async () => { if (item.label === 'Sign Out') { await supabase.auth.signOut() } }} style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '14px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
                 <span style={{ fontSize: '20px' }}>{item.emoji}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: '700', fontSize: '14px' }}>{item.label}</div>
@@ -3396,6 +4328,2644 @@ function RunningHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
 
   return <SportHubTemplate setActiveNav={setActiveNav} title="Running Hub" emoji="🏃" color="#06b6d4" options={options} />
 }
+function BasketballHub({ setActiveNav, basketballSessions }: any) {
+  const totalPoints = basketballSessions.reduce((sum: number, s: any) => sum + (s.points || 0), 0)
+  const totalAssists = basketballSessions.reduce((sum: number, s: any) => sum + (s.assists || 0), 0)
+  const totalRebounds = basketballSessions.reduce((sum: number, s: any) => sum + (s.rebounds || 0), 0)
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🏀 Basketball</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track games, shooting and training</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
+          {[
+            { label: 'Sessions', value: basketballSessions.length, color: '#f97316' },
+            { label: 'Points', value: totalPoints, color: '#22c55e' },
+            { label: 'Assists', value: totalAssists, color: '#06b6d4' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '22px', fontWeight: '900', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: '#555', marginTop: '4px', fontWeight: '700' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {[
+            { title: 'Log Basketball Session', desc: 'Record points, assists, rebounds and shots', emoji: '✚', nav: 'log-basketball', color: '#f97316' },
+            { title: 'Basketball Stats', desc: 'View totals and performance trends', emoji: '📊', nav: 'basketball-stats', color: '#22c55e' },
+            { title: 'Suggested Sessions', desc: 'Shooting, handling and conditioning plans', emoji: '💡', nav: 'basketball-plans', color: '#06b6d4' },
+            { title: 'Fixtures & Results', desc: 'Add games and record scores', emoji: '📅', nav: 'basketball-fixtures', color: '#a855f7' },
+          ].map((item) => (
+            <div key={item.title} onClick={() => setActiveNav(item.nav)} style={{ background: '#13131f', border: `1px solid ${item.color}25`, borderLeft: `4px solid ${item.color}`, borderRadius: '16px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{item.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '800', fontSize: '15px' }}>{item.title}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{item.desc}</div>
+              </div>
+              <div style={{ color: item.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+function BoxingHub({ setActiveNav, boxingSessions }: any) {
+  const totalRounds = boxingSessions.reduce((sum: number, s: any) => sum + (s.rounds || 0), 0)
+  const totalPunches = boxingSessions.reduce((sum: number, s: any) => sum + (s.punches || 0), 0)
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🥊 Boxing</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track boxing sessions, rounds and training</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
+          {[
+            { label: 'Sessions', value: boxingSessions.length, color: '#ef4444' },
+            { label: 'Rounds', value: totalRounds, color: '#f97316' },
+            { label: 'Punches', value: totalPunches, color: '#06b6d4' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '22px', fontWeight: '900', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: '#555', marginTop: '4px', fontWeight: '700' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {[
+            { title: 'Log Boxing Session', desc: 'Record bag work, sparring, pads or conditioning', emoji: '✚', nav: 'log-boxing', color: '#ef4444' },
+            { title: 'Boxing Stats', desc: 'View rounds, punches and training volume', emoji: '📊', nav: 'boxing-stats', color: '#f97316' },
+            { title: 'Training Plans', desc: 'Technique, footwork, defence and conditioning drills', emoji: '💡', nav: 'boxing-plans', color: '#06b6d4' },
+          ].map((item) => (
+            <div key={item.title} onClick={() => setActiveNav(item.nav)} style={{ background: '#13131f', border: `1px solid ${item.color}25`, borderLeft: `4px solid ${item.color}`, borderRadius: '16px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{item.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '800', fontSize: '15px' }}>{item.title}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{item.desc}</div>
+              </div>
+              <div style={{ color: item.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+function GolfHub({ setActiveNav, golfSessions }: any) {
+  const totalRounds = golfSessions.filter((s: any) => s.session_type === 'Round').length
+  const avgScore = totalRounds > 0 ? (golfSessions.filter((s: any) => s.session_type === 'Round').reduce((sum: number, s: any) => sum + (s.score || 0), 0) / totalRounds).toFixed(1) : 'N/A'
+  const bestScore = totalRounds > 0 ? Math.min(...golfSessions.filter((s: any) => s.session_type === 'Round').map((s: any) => s.score || 999)) : 0
+
+  const options = [
+    { title: 'Log a Round', desc: 'Score, putts, fairways and greens in regulation', emoji: '⛳', nav: 'log-golf', color: '#84cc16' },
+    { title: 'Suggested Sessions', desc: 'Driving, short game, putting and course management', emoji: '💡', nav: 'golf-plans', color: '#f59e0b' },
+    { title: 'My Stats', desc: 'Scoring average, best round and trends', emoji: '📊', nav: 'golf-stats', color: '#a855f7' },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#84cc16', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>⛳ Golf</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track rounds, practice and improvement</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
+          {[
+            { label: 'Rounds', value: totalRounds, color: '#84cc16' },
+            { label: 'Avg Score', value: avgScore, color: '#06b6d4' },
+            { label: 'Best', value: bestScore || 'N/A', color: '#f59e0b' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: '900', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '10px', color: '#555', marginTop: '4px', fontWeight: '700' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {options.map((item) => (
+            <div key={item.title} onClick={() => setActiveNav(item.nav)} style={{ background: '#13131f', border: `1px solid ${item.color}25`, borderLeft: `4px solid ${item.color}`, borderRadius: '16px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{item.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '800', fontSize: '15px' }}>{item.title}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{item.desc}</div>
+              </div>
+              <div style={{ color: item.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LogGolf({ setActiveNav, golfSessions, setGolfSessions, addSocialPost }: any) {
+  const [sessionType, setSessionType] = useState('Round')
+  const [course, setCourse] = useState('')
+  const [holes, setHoles] = useState('18')
+  const [score, setScore] = useState('')
+  const [putts, setPutts] = useState('')
+  const [fairwaysHit, setFairwaysHit] = useState('')
+  const [gir, setGir] = useState('')
+  const [notes, setNotes] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = async () => {
+    const newSession = {
+      id: Date.now(),
+      session_type: sessionType,
+      course,
+      holes: parseInt(holes) || 18,
+      score: parseInt(score) || 0,
+      putts: parseInt(putts) || 0,
+      fairways_hit: parseInt(fairwaysHit) || 0,
+      gir: parseInt(gir) || 0,
+      notes,
+      date: new Date().toISOString().split('T')[0]
+    }
+    setGolfSessions([newSession, ...golfSessions])
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('golf_sessions').insert({
+        user_id: session.user.id,
+        session_type: sessionType,
+        course,
+        holes: parseInt(holes) || 18,
+        score: parseInt(score) || 0,
+        putts: parseInt(putts) || 0,
+        fairways_hit: parseInt(fairwaysHit) || 0,
+        gir: parseInt(gir) || 0,
+        notes
+      })
+    }
+
+    addSocialPost({
+      sport: 'Golf',
+      sportColor: '#84cc16',
+      emoji: '⛳',
+      caption: `Played ${holes} holes at ${course || 'the course'} — scored ${score || 0} with ${putts || 0} putts.`
+    })
+
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('golf-hub')} style={{ background: 'none', border: 'none', color: '#84cc16', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Golf Session</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track your round or practice</p>
+
+        <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>SESSION TYPE</label>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+          {['Round', 'Practice', 'Driving Range', 'Putting Practice', 'Chipping Practice'].map((type) => (
+            <button key={type} onClick={() => setSessionType(type)} style={{ background: sessionType === type ? '#84cc1620' : '#13131f', border: `1.5px solid ${sessionType === type ? '#84cc16' : '#1e1e30'}`, borderRadius: '10px', color: sessionType === type ? '#84cc16' : '#666', padding: '10px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>{type}</button>
+          ))}
+        </div>
+
+        {sessionType === 'Round' && (
+          <>
+            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '8px' }}>COURSE NAME</label>
+            <input value={course} onChange={(e) => setCourse(e.target.value)} placeholder="e.g. St Andrews" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', marginBottom: '16px', boxSizing: 'border-box' }} />
+
+            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>HOLES PLAYED</label>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+              {['9', '18'].map((h) => (
+                <button key={h} onClick={() => setHoles(h)} style={{ background: holes === h ? '#84cc1620' : '#13131f', border: `1.5px solid ${holes === h ? '#84cc16' : '#1e1e30'}`, borderRadius: '10px', color: holes === h ? '#84cc16' : '#666', padding: '10px 24px', fontSize: '15px', fontWeight: '700', cursor: 'pointer' }}>{h}</button>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+              {[
+                { label: 'SCORE', value: score, setter: setScore, placeholder: '72' },
+                { label: 'PUTTS', value: putts, setter: setPutts, placeholder: '30' },
+                { label: 'FAIRWAYS HIT', value: fairwaysHit, setter: setFairwaysHit, placeholder: '10' },
+                { label: 'GREENS IN REG', value: gir, setter: setGir, placeholder: '12' },
+              ].map((field) => (
+                <div key={field.label}>
+                  <label style={{ fontSize: '11px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '6px' }}>{field.label}</label>
+                  <input value={field.value} onChange={(e) => field.setter(e.target.value)} placeholder={field.placeholder} style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '18px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box' }} />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '8px' }}>NOTES</label>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="How did it go? Any highlights or things to work on?" rows={3} style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '14px', resize: 'none', boxSizing: 'border-box', fontFamily: 'system-ui, sans-serif', marginBottom: '28px' }} />
+
+        <button onClick={handleSave} style={{ width: '100%', background: saved ? '#65a30d' : 'linear-gradient(135deg, #84cc16, #65a30d)', border: 'none', borderRadius: '14px', color: 'white', padding: '16px', fontSize: '16px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 0 20px #84cc1640' }}>
+          {saved ? '✓ Session Saved!' : 'Save Session'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function GolfStats({ setActiveNav, golfSessions }: any) {
+  const rounds = golfSessions.filter((s: any) => s.session_type === 'Round')
+  const totalRounds = rounds.length
+  const totalSessions = golfSessions.length
+  const avgScore = totalRounds > 0 ? (rounds.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / totalRounds).toFixed(1) : 'N/A'
+  const bestScore = totalRounds > 0 ? Math.min(...rounds.map((s: any) => s.score || 999)) : 0
+  const avgPutts = totalRounds > 0 ? (rounds.reduce((sum: number, s: any) => sum + (s.putts || 0), 0) / totalRounds).toFixed(1) : 'N/A'
+  const avgFairways = totalRounds > 0 ? (rounds.reduce((sum: number, s: any) => sum + (s.fairways_hit || 0), 0) / totalRounds).toFixed(1) : 'N/A'
+  const avgGir = totalRounds > 0 ? (rounds.reduce((sum: number, s: any) => sum + (s.gir || 0), 0) / totalRounds).toFixed(1) : 'N/A'
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('golf-hub')} style={{ background: 'none', border: 'none', color: '#84cc16', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Golf Stats</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your performance from logged rounds</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+          {[
+            { label: 'Total Sessions', value: totalSessions, color: '#84cc16', emoji: '⛳' },
+            { label: 'Rounds Played', value: totalRounds, color: '#06b6d4', emoji: '🏌️' },
+            { label: 'Avg Score', value: avgScore, color: '#f59e0b', emoji: '📊' },
+            { label: 'Best Round', value: bestScore || 'N/A', color: '#22c55e', emoji: '🏆' },
+            { label: 'Avg Putts', value: avgPutts, color: '#a855f7', emoji: '🎯' },
+            { label: 'Avg GIR', value: avgGir, color: '#ef4444', emoji: '🟢' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '16px', padding: '18px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', marginBottom: '6px' }}>{stat.emoji}</div>
+              <div style={{ fontSize: '22px', fontWeight: '800', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: '#555', marginTop: '4px', fontWeight: '600' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <h2 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '12px' }}>Scoring Breakdown</h2>
+        {[
+          { label: 'Avg Fairways Hit', value: avgFairways, color: '#84cc16' },
+          { label: 'Avg Greens in Reg', value: avgGir, color: '#22c55e' },
+          { label: 'Avg Putts per Round', value: avgPutts, color: '#06b6d4' },
+        ].map((item) => (
+          <div key={item.label} style={{ background: '#13131f', borderLeft: `4px solid ${item.color}`, borderRadius: '14px', padding: '14px 18px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontWeight: '700' }}>{item.label}</span>
+            <span style={{ color: item.color, fontWeight: '800' }}>{item.value}</span>
+          </div>
+        ))}
+
+        <h2 style={{ fontSize: '16px', fontWeight: '800', margin: '24px 0 12px' }}>Recent Rounds</h2>
+        {rounds.length === 0 ? (
+          <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '18px', color: '#666' }}>No rounds logged yet.</div>
+        ) : (
+          rounds.slice(0, 5).map((round: any, i: number) => (
+            <div key={i} style={{ background: '#13131f', border: '1px solid #84cc1625', borderLeft: '4px solid #84cc16', borderRadius: '14px', padding: '14px 18px', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <strong>{round.course || 'Unknown Course'} · {round.holes || 18} holes</strong>
+                <span style={{ color: '#84cc16', fontWeight: '800', fontSize: '18px' }}>{round.score}</span>
+              </div>
+              <div style={{ color: '#666', fontSize: '12px' }}>{round.putts || 0} putts · {round.fairways_hit || 0} fairways · {round.gir || 0} GIR</div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SuggestedGolfSessions({ setActiveNav }: any) {
+  const [selected, setSelected] = useState<string | null>(null)
+
+  const categories = [
+    { label: 'Driving', emoji: '🏌️', color: '#84cc16', desc: 'Distance, accuracy and swing consistency off the tee' },
+    { label: 'Iron Play', emoji: '⛳', color: '#22c55e', desc: 'Ball striking, distance control and approach shots' },
+    { label: 'Short Game', emoji: '🎯', color: '#f59e0b', desc: 'Chipping, pitching and bunker play around the green' },
+    { label: 'Putting', emoji: '🟢', color: '#06b6d4', desc: 'Green reading, distance control and holing out' },
+    { label: 'Course Management', emoji: '🧠', color: '#a855f7', desc: 'Decision making, risk reward and scoring strategy' },
+    { label: 'Mental Game', emoji: '💆', color: '#ef4444', desc: 'Focus, routine, pressure handling and consistency' },
+  ]
+
+  const drills: any = {
+    Driving: {
+      color: '#84cc16', emoji: '🏌️',
+      sections: [{
+        title: 'Distance & Accuracy',
+        drills: [
+          { name: 'Alignment Stick Drill', setup: 'Place two alignment sticks on the ground — one for ball position, one for target line. Hit 20 drives focusing purely on starting the ball on your target line.', reps: '20 drives', tip: 'Most wayward drives start from poor alignment. Fix the setup before fixing the swing.' },
+          { name: 'Tempo Control', setup: 'Hit drives at 75% effort focusing on smooth tempo. Count 1-2-3 on the backswing, 1 on the downswing.', reps: '3 sets of 10', tip: 'Most amateurs swing too fast. 75% effort often produces more distance than 100%.' },
+          { name: 'Tee Height Experiment', setup: 'Hit 5 drives each at low, medium and high tee height. Note which produces your best contact and flight.', reps: '15 drives', tip: 'Correct tee height varies by swing. Find what works for you, not what looks right.' },
+        ]
+      }]
+    },
+    'Iron Play': {
+      color: '#22c55e', emoji: '⛳',
+      sections: [{
+        title: 'Ball Striking',
+        drills: [
+          { name: 'Divot Direction Drill', setup: 'Hit 20 iron shots and check that your divots point at or slightly left of target. Divots pointing right mean an out-to-in path.', reps: '20 shots', tip: 'The divot tells you everything about your swing path. Trust it.' },
+          { name: 'Distance Ladder', setup: 'Hit 5 shots each with 9-iron, 8-iron, 7-iron, 6-iron. Record carry distance for each club.', reps: '20 shots total', tip: 'Knowing your exact distances removes guesswork on the course.' },
+          { name: 'One Ball Drill', setup: 'Place one ball down. Before hitting, commit to a specific target, visualise the shot shape, then execute. No mulligans.', reps: '15 shots', tip: 'Practice like you play. On the course you only get one ball.' },
+        ]
+      }]
+    },
+    'Short Game': {
+      color: '#f59e0b', emoji: '🎯',
+      sections: [{
+        title: 'Chipping & Pitching',
+        drills: [
+          { name: 'Landing Spot Chipping', setup: 'Pick a spot 1 metre onto the green and try to land every chip on it. Let the ball run to the hole.', reps: '30 chips', tip: 'Think of chipping like a putt with a bounce. Control the landing spot, not the hole.' },
+          { name: 'Clock Face Pitching', setup: 'From 10, 20, 30 and 40 yards, try to land shots within 1 metre of the flag.', reps: '5 from each distance', tip: 'Distance control in the short game saves more shots than any technique tweak.' },
+          { name: 'Bunker Escape Drill', setup: 'Drop 10 balls in the bunker. Your target is to get all 10 out in one shot and onto the green.', reps: '10 bunker shots', tip: 'Hit 2 inches behind the ball. You are hitting the sand, not the ball.' },
+        ]
+      }]
+    },
+    Putting: {
+      color: '#06b6d4', emoji: '🟢',
+      sections: [{
+        title: 'Distance & Line',
+        drills: [
+          { name: '3-6-9 Foot Drill', setup: 'Place 3 balls at 3 feet, 3 at 6 feet, 3 at 9 feet. Try to hole all 9 in one rotation.', reps: '5 rotations', tip: 'Holing putts inside 6 feet consistently is the single biggest scoring improvement available.' },
+          { name: 'Lag Putting Gate', setup: 'From 30, 40 and 50 feet, try to stop every putt within 1 metre of the hole.', reps: '5 from each distance', tip: 'Three putts come from bad lag putting, not bad short putts.' },
+          { name: 'One Hand Putting', setup: 'Putt with your lead hand only from 6 feet. This builds feel and stops the trail hand from taking over.', reps: '20 putts', tip: 'The lead hand should control the putter face through impact.' },
+        ]
+      }]
+    },
+    'Course Management': {
+      color: '#a855f7', emoji: '🧠',
+      sections: [{
+        title: 'Decision Making',
+        drills: [
+          { name: 'Target Zone Practice', setup: 'On each hole in practice, identify a target zone rather than a specific target. Aim for a 10-metre wide window on fairways and greens.', reps: '18 holes', tip: 'Aiming at a large target reduces tension and usually produces better shots.' },
+          { name: 'Leave Yourself Below the Hole', setup: 'On approach shots, aim to finish below the hole every time rather than going for the flag. Uphill putts are much easier.', reps: '18 holes', tip: 'Tour pros aim away from the flag more often than amateurs realise.' },
+          { name: 'Play the Percentages', setup: 'On each shot, ask yourself: what is the shot I can make 7 out of 10 times? Play that shot, not the hero shot.', reps: '18 holes', tip: 'Bogey golf beats double bogey golf every time.' },
+        ]
+      }]
+    },
+    'Mental Game': {
+      color: '#ef4444', emoji: '💆',
+      sections: [{
+        title: 'Focus & Routine',
+        drills: [
+          { name: 'Pre-Shot Routine', setup: 'Build a consistent 20-30 second routine: stand behind the ball, pick a target, take one practice swing, address and fire. Never vary it.', reps: 'Every shot', tip: 'A consistent routine is the best pressure management tool in golf.' },
+          { name: 'One Shot at a Time', setup: 'After every shot — good or bad — take a breath, release it, and reset. The previous shot does not exist anymore.', reps: '18 holes', tip: 'The ability to move on is more valuable than the ability to execute perfect shots.' },
+          { name: 'Pressure Putting Practice', setup: 'Set a rule: if you miss a 4-foot putt, you do 10 push-ups. Practice with consequences.', reps: '20 putts', tip: 'Practice pressure helps you perform under real pressure on the course.' },
+        ]
+      }]
+    },
+  }
+
+  if (selected) {
+    const cat = drills[selected]
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+        <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+          <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+          <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 24px' }}>{cat.emoji} {selected}</h1>
+          {cat.sections.map((section: any) => (
+            <div key={section.title} style={{ marginBottom: '28px' }}>
+              <h2 style={{ fontSize: '13px', fontWeight: '900', color: cat.color, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>{section.title}</h2>
+              {section.drills.map((drill: any) => (
+                <div key={drill.name} style={{ background: '#13131f', border: `1px solid ${cat.color}20`, borderLeft: `4px solid ${cat.color}`, borderRadius: '16px', padding: '18px', marginBottom: '12px' }}>
+                  <div style={{ fontWeight: '900', fontSize: '15px', marginBottom: '8px' }}>{drill.name}</div>
+                  <p style={{ color: '#aaa', fontSize: '13px', margin: '0 0 10px', lineHeight: '1.6' }}>{drill.setup}</p>
+                  <span style={{ background: `${cat.color}15`, border: `1px solid ${cat.color}30`, borderRadius: '20px', color: cat.color, fontSize: '11px', fontWeight: '700', padding: '4px 10px' }}>📋 {drill.reps}</span>
+                  <div style={{ background: '#0a0a0f', borderRadius: '10px', padding: '10px 14px', borderLeft: `3px solid ${cat.color}`, marginTop: '10px' }}>
+                    <span style={{ fontSize: '11px', color: cat.color, fontWeight: '700' }}>💡 COACHING TIP </span>
+                    <span style={{ fontSize: '12px', color: '#888' }}>{drill.tip}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('golf-hub')} style={{ background: 'none', border: 'none', color: '#84cc16', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Golf Training</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
+        {categories.map((cat) => (
+          <div key={cat.label} onClick={() => setSelected(cat.label)} style={{ background: '#13131f', border: `1px solid ${cat.color}25`, borderLeft: `4px solid ${cat.color}`, borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', marginBottom: '14px' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${cat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0 }}>{cat.emoji}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>{cat.label}</div>
+              <div style={{ color: '#666', fontSize: '13px' }}>{cat.desc}</div>
+            </div>
+            <div style={{ color: cat.color, fontSize: '24px' }}>›</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function RugbyHub({ setActiveNav, rugbySessions }: any) {
+  const totalSessions = rugbySessions.length
+  const totalTries = rugbySessions.reduce((sum: number, s: any) => sum + (s.tries || 0), 0)
+  const totalTackles = rugbySessions.reduce((sum: number, s: any) => sum + (s.tackles || 0), 0)
+
+  const options = [
+    { title: 'Log a Session', desc: 'Match, training or skills session', emoji: '📝', nav: 'log-rugby', color: '#f59e0b' },
+    { title: 'Suggested Sessions', desc: 'Tackling, attacking, fitness and set pieces', emoji: '💡', nav: 'rugby-plans', color: '#06b6d4' },
+    { title: 'My Stats', desc: 'Tries, tackles, carries and session history', emoji: '📊', nav: 'rugby-stats', color: '#a855f7' },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🏉 Rugby</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track matches, training and skills</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
+          {[
+            { label: 'Sessions', value: totalSessions, color: '#f59e0b' },
+            { label: 'Tries', value: totalTries, color: '#22c55e' },
+            { label: 'Tackles', value: totalTackles, color: '#ef4444' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '22px', fontWeight: '900', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: '#555', marginTop: '4px', fontWeight: '700' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {options.map((item) => (
+            <div key={item.title} onClick={() => setActiveNav(item.nav)} style={{ background: '#13131f', border: `1px solid ${item.color}25`, borderLeft: `4px solid ${item.color}`, borderRadius: '16px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{item.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '800', fontSize: '15px' }}>{item.title}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{item.desc}</div>
+              </div>
+              <div style={{ color: item.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LogRugby({ setActiveNav, rugbySessions, setRugbySessions, addSocialPost }: any) {
+  const [sessionType, setSessionType] = useState('')
+  const [duration, setDuration] = useState('')
+  const [position, setPosition] = useState('')
+  const [tries, setTries] = useState('')
+  const [tackles, setTackles] = useState('')
+  const [carries, setCarries] = useState('')
+  const [lineouts, setLineouts] = useState('')
+  const [notes, setNotes] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = async () => {
+    const newSession = {
+      id: Date.now(),
+      session_type: sessionType,
+      duration: parseInt(duration) || 0,
+      position,
+      tries: parseInt(tries) || 0,
+      tackles: parseInt(tackles) || 0,
+      carries: parseInt(carries) || 0,
+      lineouts: parseInt(lineouts) || 0,
+      notes,
+      date: new Date().toISOString().split('T')[0]
+    }
+    setRugbySessions([newSession, ...rugbySessions])
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('rugby_sessions').insert({
+        user_id: session.user.id,
+        session_type: sessionType,
+        duration: parseInt(duration) || 0,
+        position,
+        tries: parseInt(tries) || 0,
+        tackles: parseInt(tackles) || 0,
+        carries: parseInt(carries) || 0,
+        lineouts: parseInt(lineouts) || 0,
+        notes
+      })
+    }
+
+    addSocialPost({
+      sport: 'Rugby',
+      sportColor: '#f59e0b',
+      emoji: '🏉',
+      caption: `Logged a ${sessionType || 'rugby session'} — ${tries || 0} tries, ${tackles || 0} tackles, ${carries || 0} carries.`
+    })
+
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('rugby-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Rugby Session</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track your match or training</p>
+
+        <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>SESSION TYPE</label>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+          {['Match', 'Training', 'Skills', 'Fitness', 'Scrimmage'].map((type) => (
+            <button key={type} onClick={() => setSessionType(type)} style={{ background: sessionType === type ? '#f59e0b20' : '#13131f', border: `1.5px solid ${sessionType === type ? '#f59e0b' : '#1e1e30'}`, borderRadius: '10px', color: sessionType === type ? '#f59e0b' : '#666', padding: '10px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>{type}</button>
+          ))}
+        </div>
+
+        {sessionType && (
+          <>
+            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>POSITION</label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+              {['Prop', 'Hooker', 'Lock', 'Flanker', 'Number 8', 'Scrum-half', 'Fly-half', 'Centre', 'Wing', 'Fullback'].map((pos) => (
+                <button key={pos} onClick={() => setPosition(pos)} style={{ background: position === pos ? '#f59e0b20' : '#13131f', border: `1.5px solid ${position === pos ? '#f59e0b' : '#1e1e30'}`, borderRadius: '20px', color: position === pos ? '#f59e0b' : '#666', padding: '7px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>{pos}</button>
+              ))}
+            </div>
+
+            <input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="Duration (minutes)" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', marginBottom: '16px', boxSizing: 'border-box' }} />
+
+            {sessionType === 'Match' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                {[
+                  { label: 'TRIES', value: tries, setter: setTries },
+                  { label: 'TACKLES', value: tackles, setter: setTackles },
+                  { label: 'CARRIES', value: carries, setter: setCarries },
+                  { label: 'LINEOUTS WON', value: lineouts, setter: setLineouts },
+                ].map((field) => (
+                  <div key={field.label}>
+                    <label style={{ fontSize: '11px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '6px' }}>{field.label}</label>
+                    <input value={field.value} onChange={(e) => field.setter(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '18px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box' }} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="How did the session go?" rows={3} style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '14px', resize: 'none', boxSizing: 'border-box', fontFamily: 'system-ui, sans-serif', marginBottom: '28px' }} />
+
+            <button onClick={handleSave} style={{ width: '100%', background: saved ? '#d97706' : 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none', borderRadius: '14px', color: 'white', padding: '16px', fontSize: '16px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 0 20px #f59e0b40' }}>
+              {saved ? '✓ Session Saved!' : 'Save Session'}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function RugbyStats({ setActiveNav, rugbySessions }: any) {
+  const totalSessions = rugbySessions.length
+  const matches = rugbySessions.filter((s: any) => s.session_type === 'Match')
+  const totalTries = rugbySessions.reduce((sum: number, s: any) => sum + (s.tries || 0), 0)
+  const totalTackles = rugbySessions.reduce((sum: number, s: any) => sum + (s.tackles || 0), 0)
+  const totalCarries = rugbySessions.reduce((sum: number, s: any) => sum + (s.carries || 0), 0)
+  const totalLineouts = rugbySessions.reduce((sum: number, s: any) => sum + (s.lineouts || 0), 0)
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('rugby-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Rugby Stats</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your performance from logged sessions</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+          {[
+            { label: 'Total Sessions', value: totalSessions, color: '#f59e0b', emoji: '📅' },
+            { label: 'Matches', value: matches.length, color: '#22c55e', emoji: '🏉' },
+            { label: 'Tries', value: totalTries, color: '#ef4444', emoji: '🏆' },
+            { label: 'Tackles', value: totalTackles, color: '#06b6d4', emoji: '💪' },
+            { label: 'Carries', value: totalCarries, color: '#a855f7', emoji: '🏃' },
+            { label: 'Lineouts Won', value: totalLineouts, color: '#f97316', emoji: '✋' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '16px', padding: '18px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', marginBottom: '6px' }}>{stat.emoji}</div>
+              <div style={{ fontSize: '22px', fontWeight: '800', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: '#555', marginTop: '4px', fontWeight: '600' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <h2 style={{ fontSize: '16px', fontWeight: '800', margin: '0 0 12px' }}>Recent Sessions</h2>
+        {rugbySessions.length === 0 ? (
+          <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '18px', color: '#666' }}>No sessions logged yet.</div>
+        ) : (
+          rugbySessions.slice(0, 5).map((s: any, i: number) => (
+            <div key={i} style={{ background: '#13131f', border: '1px solid #f59e0b25', borderLeft: '4px solid #f59e0b', borderRadius: '14px', padding: '14px 18px', marginBottom: '10px' }}>
+              <div style={{ fontWeight: '800', fontSize: '14px' }}>{s.session_type} · {s.position || 'No position'}</div>
+              <div style={{ color: '#666', fontSize: '12px', marginTop: '4px' }}>{s.duration || 0} mins · {s.tries || 0} tries · {s.tackles || 0} tackles · {s.carries || 0} carries</div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SuggestedRugbySessions({ setActiveNav }: any) {
+  const [selected, setSelected] = useState<string | null>(null)
+
+  const categories = [
+    { label: 'Tackling', emoji: '💪', color: '#ef4444', desc: 'Body position, timing, safety and tackle technique' },
+    { label: 'Attacking', emoji: '🏃', color: '#22c55e', desc: 'Carrying, offloads, lines of running and finishing' },
+    { label: 'Set Pieces', emoji: '🏉', color: '#f59e0b', desc: 'Scrums, lineouts, restarts and defensive sets' },
+    { label: 'Fitness', emoji: '🔥', color: '#ef4444', desc: 'Rugby-specific conditioning, repeated sprints and power' },
+    { label: 'Skills', emoji: '🎯', color: '#06b6d4', desc: 'Passing, kicking, handling and decision making' },
+    { label: 'Defence', emoji: '🛡️', color: '#a855f7', desc: 'Line speed, drift, blitz and defensive communication' },
+  ]
+
+  const drills: any = {
+    Tackling: {
+      color: '#ef4444', emoji: '💪',
+      sections: [{
+        title: 'Tackle Technique',
+        drills: [
+          { name: 'Chop Tackle Drill', setup: 'Partner walks towards you. Drive in low, cheek to cheek contact, wrap around the legs and drive through.', reps: '3 sets of 8 each side', tip: 'Head to the side, eyes open. Never lead with the top of your head.' },
+          { name: 'One-on-One Tackle', setup: 'Attacker runs at half pace in a channel. Defender must make the tackle from a square defensive position.', reps: '10 live tackles', tip: 'Stay on your feet as long as possible. Early commitment gives the ball carrier time to step.' },
+          { name: 'Jackle Drill', setup: 'After making a tackle, work on getting over the ball quickly and competing for the turnover.', reps: '10 reps', tip: 'Get low, stay square and drive through the gate.' },
+        ]
+      }]
+    },
+    Attacking: {
+      color: '#22c55e', emoji: '🏃',
+      sections: [{
+        title: 'Carrying & Finishing',
+        drills: [
+          { name: 'Fend and Go', setup: 'Run at a defender holding a pad. Plant your outside foot and use a strong fend to beat them on the inside.', reps: '3 sets of 8', tip: 'The fend arm should be straight and strong. Use your hip to generate power.' },
+          { name: 'Offload Circuit', setup: 'Two players run side by side. Ball carrier takes contact from a pad holder and offloads to the support runner.', reps: '4 sets of 6', tip: 'Get the ball away before you are fully wrapped up. Offloads win matches.' },
+          { name: 'Try Finishing', setup: 'Sprint from 30 metres out and practise grounding the ball cleanly under pressure.', reps: '10 reps', tip: 'Hold the ball in two hands. Plant it firmly. Never assume the try is scored until you feel the grass.' },
+        ]
+      }]
+    },
+    'Set Pieces': {
+      color: '#f59e0b', emoji: '🏉',
+      sections: [{
+        title: 'Scrum & Lineout',
+        drills: [
+          { name: 'Scrum Machine Drive', setup: 'Drive into the scrum machine, focusing on body position: flat back, hips above knees, feet wide.', reps: '4 sets of 30 seconds', tip: 'Power comes from leg drive, not from pushing with your arms.' },
+          { name: 'Lineout Throwing', setup: 'Practice throwing to the front, middle and back of the lineout from 10 metres distance.', reps: '30 throws', tip: 'Consistent release point is more important than power. Drill the same motion every time.' },
+          { name: 'Restart Receiving', setup: 'Kick offs and restarts: practise calling early, positioning under the ball and securing clean possession.', reps: '15 kicks', tip: 'Communication is the most important factor. Call early and loud.' },
+        ]
+      }]
+    },
+    Fitness: {
+      color: '#ef4444', emoji: '🔥',
+      sections: [{
+        title: 'Rugby Conditioning',
+        drills: [
+          { name: 'Repeated Sprint Protocol', setup: 'Sprint 40 metres, walk back, repeat. Your goal is to keep splits within 5% across all reps.', reps: '10 sprints', tip: 'Rugby is repeated short sprints. Train exactly that.' },
+          { name: 'Contact Conditioning', setup: 'Hit a tackle bag hard, get up fast, sprint 10 metres, return, repeat.', reps: '6 sets of 5', tip: 'The ability to get up and accelerate after contact is the most sport-specific fitness you can train.' },
+          { name: 'Beep Test Intervals', setup: 'Run shuttles at increasing pace until you reach your target level, then recover and repeat.', reps: '3 rounds', tip: 'Rugby requires high aerobic capacity. Do not neglect base fitness.' },
+        ]
+      }]
+    },
+    Skills: {
+      color: '#06b6d4', emoji: '🎯',
+      sections: [{
+        title: 'Handling & Passing',
+        drills: [
+          { name: 'Pop Pass Accuracy', setup: 'Two players pass while running at pace. Focus on clean release, spiral and accuracy to the chest.', reps: '5 minutes continuous', tip: 'Pass to where the receiver will be, not where they are.' },
+          { name: 'Spiral Kick Practice', setup: 'Practise spiral kicks from both feet, aiming for distance and accuracy to a target zone.', reps: '20 kicks each foot', tip: 'Keep your head still and follow through straight at the target.' },
+          { name: 'Pressure Handling', setup: 'Receive passes while a defender closes in. Make a quick decision: run, pass or kick.', reps: '15 reps', tip: 'Rugby decisions are made under pressure. Practice that way.' },
+        ]
+      }]
+    },
+    Defence: {
+      color: '#a855f7', emoji: '🛡️',
+      sections: [{
+        title: 'Defensive Systems',
+        drills: [
+          { name: 'Line Speed Drill', setup: 'Defensive line moves up together on a cue. Everyone must hit the gain line at the same time.', reps: '10 rounds', tip: 'A fractured defensive line gives the attack easy options. Communicate and move together.' },
+          { name: 'Drift Defence', setup: 'Practise drifting out to cover the width of the attack without losing your shape or man.', reps: '8 sets', tip: 'Stay connected. The drift only works if everyone reads the same picture.' },
+          { name: 'Blitz Defence', setup: 'Flat defensive line moves up fast on the first receiver. Practise timing and angle of approach.', reps: '8 sets', tip: 'Speed of line is only useful if everyone goes together. One slow defender breaks the system.' },
+        ]
+      }]
+    },
+  }
+
+  if (selected) {
+    const cat = drills[selected]
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+        <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+          <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+          <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 24px' }}>{cat.emoji} {selected}</h1>
+          {cat.sections.map((section: any) => (
+            <div key={section.title} style={{ marginBottom: '28px' }}>
+              <h2 style={{ fontSize: '13px', fontWeight: '900', color: cat.color, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>{section.title}</h2>
+              {section.drills.map((drill: any) => (
+                <div key={drill.name} style={{ background: '#13131f', border: `1px solid ${cat.color}20`, borderLeft: `4px solid ${cat.color}`, borderRadius: '16px', padding: '18px', marginBottom: '12px' }}>
+                  <div style={{ fontWeight: '900', fontSize: '15px', marginBottom: '8px' }}>{drill.name}</div>
+                  <p style={{ color: '#aaa', fontSize: '13px', margin: '0 0 10px', lineHeight: '1.6' }}>{drill.setup}</p>
+                  <span style={{ background: `${cat.color}15`, border: `1px solid ${cat.color}30`, borderRadius: '20px', color: cat.color, fontSize: '11px', fontWeight: '700', padding: '4px 10px' }}>📋 {drill.reps}</span>
+                  <div style={{ background: '#0a0a0f', borderRadius: '10px', padding: '10px 14px', borderLeft: `3px solid ${cat.color}`, marginTop: '10px' }}>
+                    <span style={{ fontSize: '11px', color: cat.color, fontWeight: '700' }}>💡 COACHING TIP </span>
+                    <span style={{ fontSize: '12px', color: '#888' }}>{drill.tip}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('rugby-hub')} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Rugby Training</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
+        {categories.map((cat) => (
+          <div key={cat.label} onClick={() => setSelected(cat.label)} style={{ background: '#13131f', border: `1px solid ${cat.color}25`, borderLeft: `4px solid ${cat.color}`, borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', marginBottom: '14px' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${cat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0 }}>{cat.emoji}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>{cat.label}</div>
+              <div style={{ color: '#666', fontSize: '13px' }}>{cat.desc}</div>
+            </div>
+            <div style={{ color: cat.color, fontSize: '24px' }}>›</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CricketHub({ setActiveNav, cricketSessions }: any) {
+  const totalSessions = cricketSessions.length
+  const totalRuns = cricketSessions.reduce((sum: number, s: any) => sum + (s.runs || 0), 0)
+  const totalWickets = cricketSessions.reduce((sum: number, s: any) => sum + (s.wickets || 0), 0)
+
+  const options = [
+    { title: 'Log a Session', desc: 'Batting, bowling or fielding session', emoji: '📝', nav: 'log-cricket', color: '#06b6d4' },
+    { title: 'Suggested Sessions', desc: 'Batting, bowling, fielding and fitness drills', emoji: '💡', nav: 'cricket-plans', color: '#f59e0b' },
+    { title: 'My Stats', desc: 'Runs, wickets, average and session history', emoji: '📊', nav: 'cricket-stats', color: '#a855f7' },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🏏 Cricket</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track batting, bowling and fielding</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
+          {[
+            { label: 'Sessions', value: totalSessions, color: '#06b6d4' },
+            { label: 'Runs', value: totalRuns, color: '#22c55e' },
+            { label: 'Wickets', value: totalWickets, color: '#ef4444' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '22px', fontWeight: '900', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: '#555', marginTop: '4px', fontWeight: '700' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {options.map((item) => (
+            <div key={item.title} onClick={() => setActiveNav(item.nav)} style={{ background: '#13131f', border: `1px solid ${item.color}25`, borderLeft: `4px solid ${item.color}`, borderRadius: '16px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{item.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '800', fontSize: '15px' }}>{item.title}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{item.desc}</div>
+              </div>
+              <div style={{ color: item.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LogCricket({ setActiveNav, cricketSessions, setCricketSessions, addSocialPost }: any) {
+  const [sessionType, setSessionType] = useState('')
+  const [duration, setDuration] = useState('')
+  const [runs, setRuns] = useState('')
+  const [ballsFaced, setBallsFaced] = useState('')
+  const [wickets, setWickets] = useState('')
+  const [oversBowled, setOversBowled] = useState('')
+  const [catches, setCatches] = useState('')
+  const [notes, setNotes] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  const battingAverage = runs && ballsFaced ? (parseInt(runs) / Math.max(1, parseInt(ballsFaced)) * 100).toFixed(1) : '0.0'
+
+  const handleSave = async () => {
+    const newSession = {
+      id: Date.now(),
+      session_type: sessionType,
+      duration: parseInt(duration) || 0,
+      runs: parseInt(runs) || 0,
+      balls_faced: parseInt(ballsFaced) || 0,
+      wickets: parseInt(wickets) || 0,
+      overs_bowled: parseFloat(oversBowled) || 0,
+      catches: parseInt(catches) || 0,
+      notes,
+      date: new Date().toISOString().split('T')[0]
+    }
+    setCricketSessions([newSession, ...cricketSessions])
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('cricket_sessions').insert({
+        user_id: session.user.id,
+        session_type: sessionType,
+        duration: parseInt(duration) || 0,
+        runs: parseInt(runs) || 0,
+        balls_faced: parseInt(ballsFaced) || 0,
+        wickets: parseInt(wickets) || 0,
+        overs_bowled: parseFloat(oversBowled) || 0,
+        catches: parseInt(catches) || 0,
+        notes
+      })
+    }
+
+    addSocialPost({
+      sport: 'Cricket',
+      sportColor: '#06b6d4',
+      emoji: '🏏',
+      caption: `Logged a ${sessionType || 'cricket session'} — ${runs || 0} runs off ${ballsFaced || 0} balls, ${wickets || 0} wickets.`
+    })
+
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('cricket-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Log Cricket Session</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track your batting, bowling or fielding</p>
+
+        <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>SESSION TYPE</label>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+          {['Match', 'Batting Practice', 'Bowling Practice', 'Fielding', 'Net Session'].map((type) => (
+            <button key={type} onClick={() => setSessionType(type)} style={{ background: sessionType === type ? '#06b6d420' : '#13131f', border: `1.5px solid ${sessionType === type ? '#06b6d4' : '#1e1e30'}`, borderRadius: '10px', color: sessionType === type ? '#06b6d4' : '#666', padding: '10px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>{type}</button>
+          ))}
+        </div>
+
+        {sessionType && (
+          <>
+            <input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="Duration (minutes)" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', marginBottom: '16px', boxSizing: 'border-box' }} />
+
+            {(sessionType === 'Match' || sessionType === 'Batting Practice' || sessionType === 'Net Session') && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                {[
+                  { label: 'RUNS', value: runs, setter: setRuns, placeholder: '45' },
+                  { label: 'BALLS FACED', value: ballsFaced, setter: setBallsFaced, placeholder: '60' },
+                ].map((field) => (
+                  <div key={field.label}>
+                    <label style={{ fontSize: '11px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '6px' }}>{field.label}</label>
+                    <input value={field.value} onChange={(e) => field.setter(e.target.value)} placeholder={field.placeholder} style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '18px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box' }} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(sessionType === 'Match' || sessionType === 'Bowling Practice' || sessionType === 'Net Session') && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                {[
+                  { label: 'WICKETS', value: wickets, setter: setWickets, placeholder: '2' },
+                  { label: 'OVERS BOWLED', value: oversBowled, setter: setOversBowled, placeholder: '8.4' },
+                ].map((field) => (
+                  <div key={field.label}>
+                    <label style={{ fontSize: '11px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '6px' }}>{field.label}</label>
+                    <input value={field.value} onChange={(e) => field.setter(e.target.value)} placeholder={field.placeholder} style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '18px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box' }} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {runs && ballsFaced && (
+              <div style={{ background: '#13131f', border: '1px solid #06b6d425', borderLeft: '4px solid #06b6d4', borderRadius: '14px', padding: '14px 18px', marginBottom: '16px' }}>
+                <div style={{ color: '#666', fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>STRIKE RATE</div>
+                <div style={{ color: '#06b6d4', fontSize: '24px', fontWeight: '900' }}>{battingAverage}</div>
+              </div>
+            )}
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '11px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '6px' }}>CATCHES</label>
+              <input value={catches} onChange={(e) => setCatches(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '18px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box' }} />
+            </div>
+
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="How did the session go?" rows={3} style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '14px', resize: 'none', boxSizing: 'border-box', fontFamily: 'system-ui, sans-serif', marginBottom: '28px' }} />
+
+            <button onClick={handleSave} style={{ width: '100%', background: saved ? '#0891b2' : 'linear-gradient(135deg, #06b6d4, #0891b2)', border: 'none', borderRadius: '14px', color: 'white', padding: '16px', fontSize: '16px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 0 20px #06b6d440' }}>
+              {saved ? '✓ Session Saved!' : 'Save Session'}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function CricketStats({ setActiveNav, cricketSessions }: any) {
+  const totalSessions = cricketSessions.length
+  const totalRuns = cricketSessions.reduce((sum: number, s: any) => sum + (s.runs || 0), 0)
+  const totalBallsFaced = cricketSessions.reduce((sum: number, s: any) => sum + (s.balls_faced || 0), 0)
+  const totalWickets = cricketSessions.reduce((sum: number, s: any) => sum + (s.wickets || 0), 0)
+  const totalOvers = cricketSessions.reduce((sum: number, s: any) => sum + (s.overs_bowled || 0), 0)
+  const totalCatches = cricketSessions.reduce((sum: number, s: any) => sum + (s.catches || 0), 0)
+  const strikeRate = totalBallsFaced > 0 ? ((totalRuns / totalBallsFaced) * 100).toFixed(1) : 'N/A'
+  const bowlingAverage = totalWickets > 0 ? (totalOvers / totalWickets).toFixed(1) : 'N/A'
+  const highScore = cricketSessions.length > 0 ? Math.max(...cricketSessions.map((s: any) => s.runs || 0)) : 0
+  const bestBowling = cricketSessions.length > 0 ? Math.max(...cricketSessions.map((s: any) => s.wickets || 0)) : 0
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('cricket-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Cricket Stats</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your performance from logged sessions</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+          {[
+            { label: 'Sessions', value: totalSessions, color: '#06b6d4', emoji: '📅' },
+            { label: 'Total Runs', value: totalRuns, color: '#22c55e', emoji: '🏏' },
+            { label: 'High Score', value: highScore, color: '#f59e0b', emoji: '🏆' },
+            { label: 'Strike Rate', value: strikeRate, color: '#a855f7', emoji: '⚡' },
+            { label: 'Wickets', value: totalWickets, color: '#ef4444', emoji: '🎯' },
+            { label: 'Best Bowling', value: `${bestBowling}wk`, color: '#f97316', emoji: '🏏' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '16px', padding: '18px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', marginBottom: '6px' }}>{stat.emoji}</div>
+              <div style={{ fontSize: '22px', fontWeight: '800', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: '#555', marginTop: '4px', fontWeight: '600' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <h2 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '12px' }}>Averages</h2>
+        {[
+          { label: 'Batting Strike Rate', value: strikeRate, color: '#22c55e' },
+          { label: 'Bowling Average (overs/wkt)', value: bowlingAverage, color: '#ef4444' },
+          { label: 'Total Catches', value: totalCatches, color: '#06b6d4' },
+          { label: 'Total Overs Bowled', value: totalOvers.toFixed(1), color: '#a855f7' },
+        ].map((item) => (
+          <div key={item.label} style={{ background: '#13131f', borderLeft: `4px solid ${item.color}`, borderRadius: '14px', padding: '14px 18px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontWeight: '700' }}>{item.label}</span>
+            <span style={{ color: item.color, fontWeight: '800' }}>{item.value}</span>
+          </div>
+        ))}
+
+        <h2 style={{ fontSize: '16px', fontWeight: '800', margin: '24px 0 12px' }}>Recent Sessions</h2>
+        {cricketSessions.length === 0 ? (
+          <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '18px', color: '#666' }}>No sessions logged yet.</div>
+        ) : (
+          cricketSessions.slice(0, 5).map((s: any, i: number) => (
+            <div key={i} style={{ background: '#13131f', border: '1px solid #06b6d425', borderLeft: '4px solid #06b6d4', borderRadius: '14px', padding: '14px 18px', marginBottom: '10px' }}>
+              <div style={{ fontWeight: '800', fontSize: '14px' }}>{s.session_type}</div>
+              <div style={{ color: '#666', fontSize: '12px', marginTop: '4px' }}>{s.runs || 0} runs · {s.balls_faced || 0} balls · {s.wickets || 0} wkts · {s.overs_bowled || 0} overs</div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SuggestedCricketSessions({ setActiveNav }: any) {
+  const [selected, setSelected] = useState<string | null>(null)
+
+  const categories = [
+    { label: 'Batting', emoji: '🏏', color: '#22c55e', desc: 'Technique, shot selection, footwork and timing' },
+    { label: 'Bowling', emoji: '🎯', color: '#ef4444', desc: 'Line and length, swing, seam and spin bowling' },
+    { label: 'Fielding', emoji: '🧤', color: '#06b6d4', desc: 'Catching, throwing, ground fielding and positioning' },
+    { label: 'Fitness', emoji: '🔥', color: '#f59e0b', desc: 'Cricket-specific conditioning, agility and explosiveness' },
+    { label: 'Mental Game', emoji: '🧠', color: '#a855f7', desc: 'Concentration, pressure handling and match awareness' },
+    { label: 'Net Sessions', emoji: '🕸️', color: '#f97316', desc: 'Structured net practice for batting and bowling' },
+  ]
+
+  const drills: any = {
+    Batting: {
+      color: '#22c55e', emoji: '🏏',
+      sections: [{
+        title: 'Technique & Timing',
+        drills: [
+          { name: 'Straight Drive Drill', setup: 'Feed balls on a good length. Focus on driving straight down the ground with a high elbow, straight bat and full follow-through.', reps: '30 balls', tip: 'The straight drive is the foundation of good batting. Master it before attacking other areas.' },
+          { name: 'Back Foot Punching', setup: 'Feed short balls outside off stump. Rock back and punch through the covers or point.', reps: '25 balls', tip: 'Weight transfers back early. Do not fall over to the off side.' },
+          { name: 'Leave Practice', setup: 'Feed balls outside off stump. Practise leaving them with soft hands and minimal movement.', reps: '20 balls', tip: 'The best batters know which balls to leave. Leaving well is a skill.' },
+        ]
+      }]
+    },
+    Bowling: {
+      color: '#ef4444', emoji: '🎯',
+      sections: [{
+        title: 'Line & Length',
+        drills: [
+          { name: 'Target Zone Bowling', setup: 'Place a target on a good length on and just outside off stump. Bowl 20 balls trying to hit the target.', reps: '20 deliveries', tip: 'Good bowling starts with good line and length. Everything else builds on top.' },
+          { name: 'Swing Bowling Practice', setup: 'Bowl with a shiny side and dull side. Practise outswing grip with seam upright and wrist behind the ball.', reps: '15 deliveries', tip: 'Swing comes from wrist position and seam angle, not from muscling the ball.' },
+          { name: 'Yorker Practice', setup: 'Bowl full deliveries aimed at the base of the stumps. Essential for death bowling in limited overs cricket.', reps: '20 deliveries', tip: 'A well-executed yorker is almost unplayable. Practise it regularly.' },
+        ]
+      }]
+    },
+    Fielding: {
+      color: '#06b6d4', emoji: '🧤',
+      sections: [{
+        title: 'Catching & Throwing',
+        drills: [
+          { name: 'High Catch Practice', setup: 'Have a partner hit or throw high catches. Call early, get into position underneath and take the ball at chest height.', reps: '20 catches', tip: 'Never take your eye off the ball. Watch it all the way into your hands.' },
+          { name: 'Ground Fielding Circuit', setup: 'Dive and slide to stop balls hit to your left and right. Get up quickly and throw accurately to the stumps.', reps: '15 reps each side', tip: 'Committed fielding saves runs and builds pressure on the batting side.' },
+          { name: 'Direct Hit Throwing', setup: 'Set up a set of stumps 20-30 metres away. Run in, pick up a ball and attempt to hit the stumps.', reps: '15 throws', tip: 'Pick up position is everything. Get your hands low and in front of your feet.' },
+        ]
+      }]
+    },
+    Fitness: {
+      color: '#f59e0b', emoji: '🔥',
+      sections: [{
+        title: 'Cricket Conditioning',
+        drills: [
+          { name: 'Between the Wickets Running', setup: 'Sprint the 22-yard pitch back and forth as fast as possible. Rest and repeat.', reps: '10 sets of 4 lengths', tip: 'Running between the wickets is one of the most important fitness skills in cricket.' },
+          { name: 'Agility Ladder for Footwork', setup: 'Use an agility ladder to improve foot speed and coordination specific to batting footwork patterns.', reps: '5 minutes', tip: 'Good footwork gets you to the pitch of the ball. Work it every session.' },
+          { name: 'Explosive Throw Circuit', setup: 'Combine sprinting to a ball with a powerful throw at the stumps. Simulate real match fielding.', reps: '12 reps', tip: 'Fielding fitness is often neglected. It can win matches on its own.' },
+        ]
+      }]
+    },
+    'Mental Game': {
+      color: '#a855f7', emoji: '🧠',
+      sections: [{
+        title: 'Focus & Composure',
+        drills: [
+          { name: 'One Ball at a Time', setup: 'In net sessions, reset mentally between every delivery. Forget the previous ball completely.', reps: 'Every net session', tip: 'Cricket is a game of concentration. Losing focus for one ball can end your innings.' },
+          { name: 'Pressure Net Sessions', setup: 'Set a target: if you get out in nets, you do a physical challenge. Create competitive scenarios.', reps: '30 minute session', tip: 'Practise under pressure so you can perform under pressure in matches.' },
+          { name: 'Visualisation Routine', setup: 'Before batting or bowling, spend 2 minutes visualising your technique, your best shots or deliveries, and a strong performance.', reps: 'Before every session', tip: 'Mental rehearsal is used by elite players worldwide. It works.' },
+        ]
+      }]
+    },
+    'Net Sessions': {
+      color: '#f97316', emoji: '🕸️',
+      sections: [{
+        title: 'Structured Net Practice',
+        drills: [
+          { name: 'Purposeful Batting Nets', setup: 'Set a specific goal for each net session: play only through the off side, or only play straight, or focus on leaving outside off.', reps: '20 overs', tip: 'Random batting in nets does not improve you. Have a purpose every session.' },
+          { name: 'Bowling Spell Simulation', setup: 'Bowl in spells of 4-6 overs. Maintain your action, line and length as if in a real match situation.', reps: '4-6 overs', tip: 'Bowl the way you want to bowl in matches. Nets are for rehearsing match bowling.' },
+          { name: 'Scenario Practice', setup: 'Create match situations: last 5 overs batting, needing 40, or bowling with 2 wickets to take in 3 overs.', reps: '3-4 scenarios', tip: 'Scenario practice is the closest thing to real match experience you can get in training.' },
+        ]
+      }]
+    },
+  }
+
+  if (selected) {
+    const cat = drills[selected]
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+        <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+          <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: cat.color, fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+          <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 24px' }}>{cat.emoji} {selected}</h1>
+          {cat.sections.map((section: any) => (
+            <div key={section.title} style={{ marginBottom: '28px' }}>
+              <h2 style={{ fontSize: '13px', fontWeight: '900', color: cat.color, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>{section.title}</h2>
+              {section.drills.map((drill: any) => (
+                <div key={drill.name} style={{ background: '#13131f', border: `1px solid ${cat.color}20`, borderLeft: `4px solid ${cat.color}`, borderRadius: '16px', padding: '18px', marginBottom: '12px' }}>
+                  <div style={{ fontWeight: '900', fontSize: '15px', marginBottom: '8px' }}>{drill.name}</div>
+                  <p style={{ color: '#aaa', fontSize: '13px', margin: '0 0 10px', lineHeight: '1.6' }}>{drill.setup}</p>
+                  <span style={{ background: `${cat.color}15`, border: `1px solid ${cat.color}30`, borderRadius: '20px', color: cat.color, fontSize: '11px', fontWeight: '700', padding: '4px 10px' }}>📋 {drill.reps}</span>
+                  <div style={{ background: '#0a0a0f', borderRadius: '10px', padding: '10px 14px', borderLeft: `3px solid ${cat.color}`, marginTop: '10px' }}>
+                    <span style={{ fontSize: '11px', color: cat.color, fontWeight: '700' }}>💡 COACHING TIP </span>
+                    <span style={{ fontSize: '12px', color: '#888' }}>{drill.tip}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('cricket-hub')} style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+        <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>Cricket Training</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
+        {categories.map((cat) => (
+          <div key={cat.label} onClick={() => setSelected(cat.label)} style={{ background: '#13131f', border: `1px solid ${cat.color}25`, borderLeft: `4px solid ${cat.color}`, borderRadius: '16px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', marginBottom: '14px' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${cat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0 }}>{cat.emoji}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>{cat.label}</div>
+              <div style={{ color: '#666', fontSize: '13px' }}>{cat.desc}</div>
+            </div>
+            <div style={{ color: cat.color, fontSize: '24px' }}>›</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+function CyclingHub({ setActiveNav, cyclingSessions }: any) {
+  const totalDistance = cyclingSessions.reduce((sum: number, s: any) => sum + (s.distance || 0), 0)
+  const totalElevation = cyclingSessions.reduce((sum: number, s: any) => sum + (s.elevation || 0), 0)
+
+  const options = [
+    { title: 'Log Ride', desc: 'Record distance, speed, elevation and effort', emoji: '✚', nav: 'log-cycling', color: '#10b981' },
+    { title: 'Personal Records', desc: 'View longest ride, fastest speed and biggest climbs', emoji: '🏆', nav: 'cycling-records', color: '#a855f7' },
+    { title: 'Suggested Sessions', desc: 'Endurance, climbing, sprints and recovery rides', emoji: '💡', nav: 'cycling-plans', color: '#f59e0b' },
+    { title: 'My Stats', desc: 'View total rides, distance, speed and elevation', emoji: '📊', nav: 'cycling-stats', color: '#06b6d4' },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('track')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>🚴 Cycling</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Track rides, distance, speed and elevation</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
+          {[
+            { label: 'Rides', value: cyclingSessions.length, color: '#10b981' },
+            { label: 'Distance', value: `${totalDistance.toFixed(1)}km`, color: '#06b6d4' },
+            { label: 'Elevation', value: `${totalElevation}m`, color: '#f59e0b' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '14px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: '900', color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: '10px', color: '#555', marginTop: '4px', fontWeight: '700' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {options.map((item) => (
+            <div key={item.title} onClick={() => setActiveNav(item.nav)} style={{ background: '#13131f', border: `1px solid ${item.color}25`, borderLeft: `4px solid ${item.color}`, borderRadius: '16px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
+              <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{item.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '800', fontSize: '15px' }}>{item.title}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{item.desc}</div>
+              </div>
+              <div style={{ color: item.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+function CyclingStats({ setActiveNav, cyclingSessions }: any) {
+  const totalRides = cyclingSessions.length
+  const totalDistance = cyclingSessions.reduce((sum: number, s: any) => sum + (s.distance || 0), 0)
+  const totalElevation = cyclingSessions.reduce((sum: number, s: any) => sum + (s.elevation || 0), 0)
+  const longestRide = cyclingSessions.length ? Math.max(...cyclingSessions.map((s: any) => s.distance || 0)) : 0
+  const fastestSpeed = cyclingSessions.length ? Math.max(...cyclingSessions.map((s: any) => s.avgSpeed || 0)) : 0
+  const avgDistance = totalRides > 0 ? (totalDistance / totalRides).toFixed(1) : '0.0'
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('cycling-hub')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Cycling Stats</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Distance, speed, elevation and ride history</p>
+
+        <div style={{ background: '#13131f', border: '1px solid #10b98125', borderLeft: '4px solid #10b981', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ color: '#10b981', fontSize: '13px', fontWeight: '900', marginBottom: '12px' }}>OVERVIEW</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            {[
+              { label: 'Rides', value: totalRides, color: '#10b981' },
+              { label: 'Distance', value: `${totalDistance.toFixed(1)}km`, color: '#06b6d4' },
+              { label: 'Elevation', value: `${totalElevation}m`, color: '#f59e0b' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#0a0a0f', border: `1px solid ${stat.color}25`, borderRadius: '13px', padding: '13px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '20px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '10px', fontWeight: '700', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #06b6d425', borderLeft: '4px solid #06b6d4', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ color: '#06b6d4', fontSize: '13px', fontWeight: '900', marginBottom: '12px' }}>PERSONAL BESTS</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            {[
+              { label: 'Longest', value: `${longestRide}km`, color: '#10b981' },
+              { label: 'Fastest', value: `${fastestSpeed}km/h`, color: '#ef4444' },
+              { label: 'Avg Ride', value: `${avgDistance}km`, color: '#a855f7' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#0a0a0f', border: `1px solid ${stat.color}25`, borderRadius: '13px', padding: '13px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '18px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '9px', fontWeight: '700', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <h2 style={{ fontSize: '18px', fontWeight: '900', margin: '0 0 14px' }}>Recent Rides</h2>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {cyclingSessions.length === 0 && (
+            <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '14px', padding: '16px', color: '#666' }}>
+              No rides logged yet.
+            </div>
+          )}
+
+          {cyclingSessions.slice(0, 6).map((ride: any) => (
+            <div key={ride.id} style={{ background: '#13131f', border: '1px solid #10b98125', borderLeft: '4px solid #10b981', borderRadius: '14px', padding: '14px 16px' }}>
+              <div style={{ fontWeight: '800', fontSize: '14px' }}>{ride.rideType || 'Ride'}</div>
+              <div style={{ color: '#666', fontSize: '12px', marginTop: '4px' }}>
+                {ride.distance || 0}km · {ride.duration || 0} mins · {ride.avgSpeed || 0}km/h
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+function CyclingRecords({ setActiveNav, cyclingSessions }: any) {
+  const longestRide = cyclingSessions.length ? Math.max(...cyclingSessions.map((s: any) => s.distance || 0)) : 0
+  const fastestSpeed = cyclingSessions.length ? Math.max(...cyclingSessions.map((s: any) => s.avgSpeed || 0)) : 0
+  const biggestClimb = cyclingSessions.length ? Math.max(...cyclingSessions.map((s: any) => s.elevation || 0)) : 0
+  const longestDuration = cyclingSessions.length ? Math.max(...cyclingSessions.map((s: any) => s.duration || 0)) : 0
+  const hardestEffort = cyclingSessions.length ? Math.max(...cyclingSessions.map((s: any) => s.effort || 0)) : 0
+
+  const records = [
+    { title: 'Longest Ride', value: `${longestRide}km`, emoji: '🚴', color: '#10b981' },
+    { title: 'Fastest Avg Speed', value: `${fastestSpeed}km/h`, emoji: '⚡', color: '#ef4444' },
+    { title: 'Biggest Climb', value: `${biggestClimb}m`, emoji: '⛰️', color: '#f59e0b' },
+    { title: 'Longest Duration', value: `${longestDuration} mins`, emoji: '⏱️', color: '#06b6d4' },
+    { title: 'Hardest Effort', value: `${hardestEffort}/10`, emoji: '🔥', color: '#a855f7' },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('cycling-hub')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Cycling Records</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your best rides and personal milestones</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {records.map((record) => (
+            <div key={record.title} style={{ background: '#13131f', border: `1px solid ${record.color}25`, borderLeft: `4px solid ${record.color}`, borderRadius: '18px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${record.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>{record.emoji}</div>
+              <div>
+                <div style={{ color: record.color, fontSize: '24px', fontWeight: '900' }}>{record.value}</div>
+                <div style={{ color: '#aaa', fontSize: '13px', fontWeight: '700' }}>{record.title}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {cyclingSessions.length === 0 && (
+          <div style={{ marginTop: '20px', background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '16px', color: '#666' }}>
+            Log your first ride to start setting records.
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+function SuggestedCyclingSessions({ setActiveNav, setSelectedCyclingCategory }: any) {
+  const categories = [
+    { label: 'Endurance', emoji: '🚴', color: '#10b981', desc: 'Build aerobic fitness, longer rides and steady pacing' },
+    { label: 'Climbing', emoji: '⛰️', color: '#f59e0b', desc: 'Hill repeats, climbing strength, cadence and pacing' },
+    { label: 'Sprint Training', emoji: '⚡', color: '#ef4444', desc: 'Short explosive efforts, acceleration and race finishes' },
+    { label: 'Recovery', emoji: '😌', color: '#06b6d4', desc: 'Easy rides, active recovery and low-intensity spinning' },
+    { label: 'Race Preparation', emoji: '🏁', color: '#a855f7', desc: 'Race simulation, pacing, attacks and group riding' },
+    { label: 'Bike Handling', emoji: '🛞', color: '#eab308', desc: 'Cornering, braking, descending and control skills' },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('cycling-hub')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>Cycling Training</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {categories.map((cat) => (
+            <div
+              key={cat.label}
+              onClick={() => {
+                setSelectedCyclingCategory(cat.label)
+                setActiveNav('cycling-session-detail')
+              }}
+              style={{ background: '#13131f', border: `1px solid ${cat.color}25`, borderLeft: `4px solid ${cat.color}`, borderRadius: '18px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+            >
+              <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: `${cat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>{cat.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '900', fontSize: '16px' }}>{cat.label}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>{cat.desc}</div>
+              </div>
+              <div style={{ color: cat.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+function CyclingSessionDetail({ category, setActiveNav }: any) {
+const sessionData: any = {
+  Endurance: {
+    emoji: '🚴',
+    color: '#10b981',
+    sections: [
+      {
+        title: 'Base Fitness',
+        drills: [
+          { name: 'Zone 2 Ride', setup: 'Ride at a steady pace where you can still talk. Keep effort smooth and controlled.', reps: '45–90 mins', tip: 'This builds your engine without burning you out.' },
+          { name: 'Progressive Long Ride', setup: 'Start easy, ride steady in the middle, then finish slightly harder.', reps: '60–120 mins', tip: 'Good pacing matters more than starting fast.' },
+          { name: 'Cadence Control', setup: 'Hold a smooth cadence around 80–95 rpm on flat roads.', reps: '4 x 8 mins', tip: 'Smooth pedalling saves energy on long rides.' },
+        ]
+      },
+      {
+        title: 'Long Ride Skills',
+        drills: [
+          { name: 'Fuel Practice Ride', setup: 'Practise drinking regularly and taking a snack every 30–40 minutes.', reps: '90+ mins', tip: 'Long rides are partly fitness and partly fuelling.' },
+          { name: 'Negative Split Ride', setup: 'Ride the second half slightly faster than the first half.', reps: '40–80 mins', tip: 'This teaches control and strong finishes.' },
+        ]
+      }
+    ]
+  },
+
+  Climbing: {
+    emoji: '⛰️',
+    color: '#f59e0b',
+    sections: [
+      {
+        title: 'Hill Strength',
+        drills: [
+          { name: 'Hill Repeats', setup: 'Ride hard uphill, recover slowly downhill, then repeat.', reps: '6–10 repeats', tip: 'Keep your effort consistent across all reps.' },
+          { name: 'Low Cadence Climb', setup: 'Use a harder gear and climb seated with control.', reps: '4 x 5 mins', tip: 'Keep your upper body still and drive through the pedals.' },
+          { name: 'Standing Climb Practice', setup: 'Alternate 30 seconds seated and 30 seconds standing while climbing.', reps: '5–8 mins', tip: 'Do not rock side to side too much.' },
+        ]
+      },
+      {
+        title: 'Climbing Technique',
+        drills: [
+          { name: 'Pacing Climb', setup: 'Start the climb easier than you want, then build effort near the top.', reps: '3 climbs', tip: 'Most riders blow up by starting climbs too hard.' },
+          { name: 'Hill Sprint Finish', setup: 'Climb steady, then sprint the final 10–15 seconds.', reps: '5 reps', tip: 'Great for building power when tired.' },
+        ]
+      }
+    ]
+  },
+
+  'Sprint Training': {
+    emoji: '⚡',
+    color: '#ef4444',
+    sections: [
+      {
+        title: 'Explosive Speed',
+        drills: [
+          { name: '10 Second Sprints', setup: 'Roll easy, then sprint all-out for 10 seconds. Fully recover.', reps: '8–10 sprints', tip: 'Stop if your speed drops badly.' },
+          { name: '30 Second Power Efforts', setup: 'Ride very hard for 30 seconds, then easy spin for 2–3 minutes.', reps: '6 rounds', tip: 'Keep form clean even when it hurts.' },
+          { name: 'Standing Start Sprint', setup: 'Start slowly in a harder gear and accelerate hard.', reps: '6 reps', tip: 'Build power from low speed.' },
+        ]
+      },
+      {
+        title: 'Race Finishing',
+        drills: [
+          { name: 'Lead-Out Sprint', setup: 'Ride steady for 2 minutes, build speed, then sprint for 15 seconds.', reps: '5 rounds', tip: 'Practise building speed before the final sprint.' },
+          { name: 'Sprint After Fatigue', setup: 'Ride hard for 3 minutes, then sprint for 10 seconds.', reps: '4 rounds', tip: 'This feels like sprinting at the end of a race.' },
+        ]
+      }
+    ]
+  },
+
+  Recovery: {
+    emoji: '😌',
+    color: '#06b6d4',
+    sections: [
+      {
+        title: 'Easy Riding',
+        drills: [
+          { name: 'Easy Spin', setup: 'Very light ride with no pressure on speed or distance.', reps: '20–45 mins', tip: 'You should finish feeling fresher, not destroyed.' },
+          { name: 'Mobility + Spin', setup: 'Do light stretching first, then ride easily.', reps: '30 mins', tip: 'Perfect after hard days.' },
+          { name: 'High Cadence Easy Ride', setup: 'Use an easy gear and spin smoothly at a higher cadence.', reps: '25–40 mins', tip: 'Keep it easy; this is not a workout test.' },
+        ]
+      },
+      {
+        title: 'Recovery Advice',
+        drills: [
+          { name: 'Post-Ride Stretch', setup: 'Stretch calves, quads, hamstrings, hips and lower back.', reps: '10 mins', tip: 'Small recovery habits help you train more often.' },
+          { name: 'Hydration Check', setup: 'Drink after your ride and eat a proper meal if it was long or hard.', reps: 'After ride', tip: 'Recovery starts as soon as the ride ends.' },
+        ]
+      }
+    ]
+  },
+
+  'Race Preparation': {
+    emoji: '🏁',
+    color: '#a855f7',
+    sections: [
+      {
+        title: 'Race Skills',
+        drills: [
+          { name: 'Race Simulation', setup: 'Warm up, then ride race-pace sections with short surges.', reps: '45–75 mins', tip: 'Practise pacing instead of going flat out from the start.' },
+          { name: 'Attack & Recover', setup: 'Surge for 20 seconds, then settle back into a strong pace.', reps: '8 efforts', tip: 'Useful for responding to changes in pace.' },
+          { name: 'Tempo Blocks', setup: 'Ride at a strong but sustainable effort.', reps: '3 x 10 mins', tip: 'Tempo work builds race strength.' },
+        ]
+      },
+      {
+        title: 'Tactics',
+        drills: [
+          { name: 'Pace Plan Ride', setup: 'Choose a target pace and stick to it for the whole ride.', reps: '30–60 mins', tip: 'Good pacing beats random effort.' },
+          { name: 'Final 5 Minute Push', setup: 'Ride normally, then push hard for the final 5 minutes.', reps: '1 ride', tip: 'Practise finishing strong.' },
+        ]
+      }
+    ]
+  },
+
+  'Bike Handling': {
+    emoji: '🛞',
+    color: '#eab308',
+    sections: [
+      {
+        title: 'Control Skills',
+        drills: [
+          { name: 'Cornering Practice', setup: 'Practise smooth corners, looking through the turn and keeping outside pedal down.', reps: '10–15 mins', tip: 'Look where you want the bike to go.' },
+          { name: 'Braking Control', setup: 'Practise controlled braking from different speeds using both brakes smoothly.', reps: '10 reps', tip: 'Brake before corners, not during them.' },
+          { name: 'Slow Speed Balance', setup: 'Ride slowly in a straight line while staying relaxed.', reps: '5 mins', tip: 'Control at low speed improves confidence.' },
+        ]
+      },
+      {
+        title: 'Confidence Skills',
+        drills: [
+          { name: 'Descending Practice', setup: 'On a safe downhill, focus on relaxed arms, stable body position and controlled braking.', reps: '3–5 descents', tip: 'Stay loose and look far ahead.' },
+          { name: 'Obstacle Awareness', setup: 'Practise safely avoiding potholes or small obstacles by looking ahead and choosing a line early.', reps: '10 mins', tip: 'The earlier you spot hazards, the smoother you ride.' },
+        ]
+      }
+    ]
+  }
+}
+const data = sessionData[category]
+
+return (
+  <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+    <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+      <button onClick={() => setActiveNav('cycling-plans')} style={{ background: 'none', border: 'none', color: data.color, fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+      <h1 style={{ fontSize: '28px', fontWeight: '900' }}>{data.emoji} {category}</h1>
+
+      {data.sections.map((section: any) => (
+        <div key={section.title} style={{ marginBottom: '24px' }}>
+          <h2 style={{ color: data.color, fontSize: '13px', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase' }}>{section.title}</h2>
+
+          {section.drills.map((drill: any) => (
+            <div key={drill.name} style={{ background: '#13131f', border: `1px solid ${data.color}25`, borderLeft: `4px solid ${data.color}`, borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+              <div style={{ fontWeight: '900', marginBottom: '6px' }}>{drill.name}</div>
+              <div style={{ color: '#aaa', fontSize: '13px', marginBottom: '10px', lineHeight: '1.5' }}>{drill.setup}</div>
+              <div style={{ color: data.color, fontSize: '12px', fontWeight: '900', marginBottom: '8px' }}>📋 {drill.reps}</div>
+              <div style={{ color: '#888', fontSize: '12px', lineHeight: '1.5' }}>💡 {drill.tip}</div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+)
+}
+function CyclingAchievements({ setActiveNav, cyclingSessions }: any) {
+  const achievements = [
+    {
+      title: 'First Ride',
+      emoji: '🚴',
+      earned: cyclingSessions.length >= 1,
+    },
+    {
+      title: '10 Rides',
+      emoji: '🚴',
+      earned: cyclingSessions.length >= 10,
+    },
+    {
+      title: '100km Total',
+      emoji: '🏆',
+      earned:
+        cyclingSessions.reduce((sum: number, s: any) => sum + (s.distance || 0), 0) >= 100,
+    },
+    {
+      title: '500km Total',
+      emoji: '🥇',
+      earned:
+        cyclingSessions.reduce((sum: number, s: any) => sum + (s.distance || 0), 0) >= 500,
+    },
+    {
+      title: 'Century Ride',
+      emoji: '💯',
+      earned: cyclingSessions.some((s: any) => (s.distance || 0) >= 100),
+    },
+    {
+      title: 'Mountain Goat',
+      emoji: '⛰️',
+      earned: cyclingSessions.some((s: any) => (s.elevation || 0) >= 1000),
+    },
+    {
+      title: 'Speed Demon',
+      emoji: '⚡',
+      earned: cyclingSessions.some((s: any) => (s.avgSpeed || 0) >= 30),
+    },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: 'white', maxWidth: '430px', margin: '0 auto', padding: '50px 24px' }}>
+      <button
+        onClick={() => setActiveNav('cycling-hub')}
+        style={{ background: 'none', border: 'none', color: '#10b981', fontWeight: '700', marginBottom: '20px' }}
+      >
+        ← Back
+      </button>
+
+      <h1>🏆 Cycling Achievements</h1>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
+        {achievements.map((achievement) => (
+          <div
+            key={achievement.title}
+            style={{
+              background: '#13131f',
+              borderRadius: '16px',
+              padding: '16px',
+              border: achievement.earned
+                ? '1px solid #10b981'
+                : '1px solid #2a2a35',
+              opacity: achievement.earned ? 1 : 0.5,
+            }}
+          >
+            <div style={{ fontSize: '24px' }}>{achievement.emoji}</div>
+            <div style={{ fontWeight: '800', marginTop: '8px' }}>
+              {achievement.title}
+            </div>
+            <div style={{ color: achievement.earned ? '#10b981' : '#666' }}>
+              {achievement.earned ? 'Unlocked' : 'Locked'}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+function LogBoxing({
+  setActiveNav,
+  boxingSessions,
+  setBoxingSessions,
+  addSocialPost
+}: any) {
+  const [sessionType, setSessionType] = useState('Heavy Bag')
+  const [duration, setDuration] = useState('')
+  const [rounds, setRounds] = useState('')
+  const [punches, setPunches] = useState('')
+  const [notes, setNotes] = useState('')
+  const [fitness, setFitness] = useState('5')
+  const [defence, setDefence] = useState('5')
+  const [punchesLanded, setPunchesLanded] = useState('')
+const [jabs, setJabs] = useState('')
+const [crosses, setCrosses] = useState('')
+const [hooks, setHooks] = useState('')
+const [uppercuts, setUppercuts] = useState('')
+const [knockdowns, setKnockdowns] = useState('')
+const [calories, setCalories] = useState('')
+const [combo, setCombo] = useState('')
+const [intensity, setIntensity] = useState('5')
+
+  const saveSession = async () => {
+    const newSession = {
+      id: Date.now(),
+      date: new Date().toLocaleDateString(),
+      sessionType,
+      duration: Number(duration) || 0,
+      rounds: Number(rounds) || 0,
+      punches: Number(punches) || 0,
+      fitness: Number(fitness),
+      defence: Number(defence),
+      punchesLanded: Number(punchesLanded) || 0,
+      jabs: Number(jabs) || 0,
+      crosses: Number(crosses) || 0,
+      hooks: Number(hooks) || 0,
+      uppercuts: Number(uppercuts) || 0,
+      knockdowns: Number(knockdowns) || 0,
+      calories: Number(calories) || 0,
+      combo,
+      intensity: Number(intensity),
+      notes
+    }
+
+    setBoxingSessions([newSession, ...boxingSessions])
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('boxing_sessions').insert({
+        user_id: session.user.id,
+        session_type: sessionType,
+        duration: Number(duration) || 0,
+        rounds: Number(rounds) || 0,
+        punches: Number(punches) || 0,
+        punches_landed: Number(punchesLanded) || 0,
+        jabs: Number(jabs) || 0,
+        crosses: Number(crosses) || 0,
+        hooks: Number(hooks) || 0,
+        uppercuts: Number(uppercuts) || 0,
+        knockdowns: Number(knockdowns) || 0,
+        calories: Number(calories) || 0,
+        combo,
+        intensity: Number(intensity),
+        fitness: Number(fitness),
+        defence: Number(defence),
+        notes
+      })
+    }
+
+    addSocialPost?.({
+      sport: 'Boxing',
+      sportColor: '#ef4444',
+      emoji: '🥊',
+      caption: `Completed a ${sessionType} session — ${duration} mins, ${rounds} rounds.`
+    })
+
+    setActiveNav('boxing-hub')
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: 'white', maxWidth: '430px', margin: '0 auto', padding: '50px 24px' }}>
+      <button onClick={() => setActiveNav('boxing-hub')} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: '700', cursor: 'pointer', marginBottom: '20px' }}>
+        ← Back
+      </button>
+
+      <h1 style={{ marginTop: 0 }}>🥊 Log Boxing Session</h1>
+
+      <label style={{ display: 'block', marginBottom: '10px', color: '#aaa', fontWeight: '700' }}>
+        SESSION TYPE
+      </label>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
+        {[
+          'Heavy Bag',
+          'Pad Work',
+          'Sparring',
+          'Technical Drills',
+          'Footwork',
+          'Strength & Conditioning'
+        ].map((type) => (
+          <button
+            key={type}
+            onClick={() => setSessionType(type)}
+            style={{
+              background: sessionType === type ? '#ef444420' : '#13131f',
+              border: `1px solid ${sessionType === type ? '#ef4444' : '#1e1e30'}`,
+              borderRadius: '20px',
+              color: sessionType === type ? '#ef4444' : '#aaa',
+              padding: '8px 12px',
+              cursor: 'pointer'
+            }}
+          >
+            {type}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+        <input
+          placeholder="Duration (mins)"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          style={{ padding: '12px', borderRadius: '10px', background: '#13131f', border: '1px solid #1e1e30', color: 'white' }}
+        />
+
+        <input
+          placeholder="Rounds"
+          value={rounds}
+          onChange={(e) => setRounds(e.target.value)}
+          style={{ padding: '12px', borderRadius: '10px', background: '#13131f', border: '1px solid #1e1e30', color: 'white' }}
+        />
+      </div>
+
+      <input
+        placeholder="Punches Thrown"
+        value={punches}
+        onChange={(e) => setPunches(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '12px',
+          borderRadius: '10px',
+          background: '#13131f',
+          border: '1px solid #1e1e30',
+          color: 'white',
+          marginBottom: '16px',
+          boxSizing: 'border-box'
+        }}
+      />
+      {(sessionType === 'Heavy Bag' || sessionType === 'Pad Work') && (
+  <>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+      <input
+        placeholder="Punches Landed"
+        value={punchesLanded}
+        onChange={(e) => setPunchesLanded(e.target.value)}
+        style={{ padding: '12px', borderRadius: '10px', background: '#13131f', border: '1px solid #1e1e30', color: 'white' }}
+      />
+
+      <input
+        placeholder="Jabs"
+        value={jabs}
+        onChange={(e) => setJabs(e.target.value)}
+        style={{ padding: '12px', borderRadius: '10px', background: '#13131f', border: '1px solid #1e1e30', color: 'white' }}
+      />
+
+      <input
+        placeholder="Crosses"
+        value={crosses}
+        onChange={(e) => setCrosses(e.target.value)}
+        style={{ padding: '12px', borderRadius: '10px', background: '#13131f', border: '1px solid #1e1e30', color: 'white' }}
+      />
+
+      <input
+        placeholder="Hooks"
+        value={hooks}
+        onChange={(e) => setHooks(e.target.value)}
+        style={{ padding: '12px', borderRadius: '10px', background: '#13131f', border: '1px solid #1e1e30', color: 'white' }}
+      />
+
+      <input
+        placeholder="Uppercuts"
+        value={uppercuts}
+        onChange={(e) => setUppercuts(e.target.value)}
+        style={{ padding: '12px', borderRadius: '10px', background: '#13131f', border: '1px solid #1e1e30', color: 'white' }}
+      />
+    </div>
+
+    <input
+      placeholder="Main combo worked on"
+      value={combo}
+      onChange={(e) => setCombo(e.target.value)}
+      style={{
+        width: '100%',
+        padding: '12px',
+        borderRadius: '10px',
+        background: '#13131f',
+        border: '1px solid #1e1e30',
+        color: 'white',
+        marginBottom: '16px',
+        boxSizing: 'border-box'
+      }}
+    />
+  </>
+)}
+
+{sessionType === 'Sparring' && (
+  <input
+    placeholder="Knockdowns"
+    value={knockdowns}
+    onChange={(e) => setKnockdowns(e.target.value)}
+    style={{
+      width: '100%',
+      padding: '12px',
+      borderRadius: '10px',
+      background: '#13131f',
+      border: '1px solid #1e1e30',
+      color: 'white',
+      marginBottom: '16px',
+      boxSizing: 'border-box'
+    }}
+  />
+)}
+
+{sessionType === 'Strength & Conditioning' && (
+  <input
+    placeholder="Calories Burned"
+    value={calories}
+    onChange={(e) => setCalories(e.target.value)}
+    style={{
+      width: '100%',
+      padding: '12px',
+      borderRadius: '10px',
+      background: '#13131f',
+      border: '1px solid #1e1e30',
+      color: 'white',
+      marginBottom: '16px',
+      boxSizing: 'border-box'
+    }}
+  />
+)}
+      
+
+      <label style={{ display: 'block', marginBottom: '8px' }}>
+  Intensity Rating: {intensity}/10
+</label>
+
+<input
+  type="range"
+  min="1"
+  max="10"
+  value={intensity}
+  onChange={(e) => setIntensity(e.target.value)}
+  style={{ width: '100%', marginBottom: '18px' }}
+/>
+
+
+      <label style={{ display: 'block', marginBottom: '8px' }}>
+        Fitness Rating: {fitness}/10
+      </label>
+
+      <input
+        type="range"
+        min="1"
+        max="10"
+        value={fitness}
+        onChange={(e) => setFitness(e.target.value)}
+        style={{ width: '100%', marginBottom: '18px' }}
+      />
+
+      <label style={{ display: 'block', marginBottom: '8px' }}>
+        Defence Rating: {defence}/10
+      </label>
+
+      <input
+        type="range"
+        min="1"
+        max="10"
+        value={defence}
+        onChange={(e) => setDefence(e.target.value)}
+        style={{ width: '100%', marginBottom: '18px' }}
+      />
+
+      <textarea
+        placeholder="Session notes..."
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        rows={4}
+        style={{
+          width: '100%',
+          padding: '12px',
+          borderRadius: '10px',
+          background: '#13131f',
+          border: '1px solid #1e1e30',
+          color: 'white',
+          boxSizing: 'border-box',
+          marginBottom: '20px'
+        }}
+      />
+
+      <button
+        onClick={saveSession}
+        style={{
+          width: '100%',
+          background: 'linear-gradient(135deg,#ef4444,#dc2626)',
+          border: 'none',
+          borderRadius: '12px',
+          color: 'white',
+          padding: '14px',
+          fontWeight: '900',
+          cursor: 'pointer'
+        }}
+      >
+        Save Session
+      </button>
+    </div>
+  )
+}
+function LogCycling({ setActiveNav, cyclingSessions, setCyclingSessions, addSocialPost }: any) {
+  const [rideType, setRideType] = useState('Road Ride')
+  const [distance, setDistance] = useState('')
+  const [duration, setDuration] = useState('')
+  const [avgSpeed, setAvgSpeed] = useState('')
+  const [elevation, setElevation] = useState('')
+  const [effort, setEffort] = useState(5)
+  const [notes, setNotes] = useState('')
+
+  const saveRide = async () => {
+    const newRide = {
+      id: Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      rideType,
+      distance: Number(distance),
+      duration: Number(duration),
+      avgSpeed: Number(avgSpeed),
+      elevation: Number(elevation),
+      effort,
+      notes
+    }
+
+    setCyclingSessions([newRide, ...cyclingSessions])
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('cycling_sessions').insert({
+        user_id: session.user.id,
+        ride_type: rideType,
+        distance: Number(distance) || 0,
+        duration: Number(duration) || 0,
+        avg_speed: Number(avgSpeed) || 0,
+        elevation: Number(elevation) || 0,
+        effort,
+        notes
+      })
+    }
+
+    addSocialPost?.({
+      sport: 'Cycling',
+      sportColor: '#10b981',
+      emoji: '🚴',
+      caption: `Logged a ${Number(distance)}km ${rideType} — ${duration} mins at ${avgSpeed}km/h.`
+    })
+
+    setActiveNav('cycling-hub')
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: 'white', padding: '24px', maxWidth: '430px', margin: '0 auto' }}>
+      <button onClick={() => setActiveNav('cycling-hub')} style={{ background: 'none', border: 'none', color: '#10b981', fontWeight: '700', marginBottom: '20px' }}>
+        ← Back
+      </button>
+
+      <h1>🚴 Log Ride</h1>
+
+      <select
+        value={rideType}
+        onChange={(e) => setRideType(e.target.value)}
+        style={{ width: '100%', padding: '12px', marginBottom: '16px', borderRadius: '10px', background: '#13131f', color: 'white' }}
+      >
+        <option>Road Ride</option>
+        <option>Mountain Bike</option>
+        <option>Recovery Ride</option>
+        <option>Interval Session</option>
+        <option>Long Ride</option>
+        <option>Commute</option>
+      </select>
+
+      <input placeholder="Distance (km)" value={distance} onChange={(e) => setDistance(e.target.value)} style={inputStyle} />
+      <input placeholder="Duration (mins)" value={duration} onChange={(e) => setDuration(e.target.value)} style={inputStyle} />
+      <input placeholder="Average Speed (km/h)" value={avgSpeed} onChange={(e) => setAvgSpeed(e.target.value)} style={inputStyle} />
+      <input placeholder="Elevation Gain (m)" value={elevation} onChange={(e) => setElevation(e.target.value)} style={inputStyle} />
+
+      <label>Effort: {effort}/10</label>
+      <input
+        type="range"
+        min="1"
+        max="10"
+        value={effort}
+        onChange={(e) => setEffort(Number(e.target.value))}
+        style={{ width: '100%', marginBottom: '20px' }}
+      />
+
+      <textarea
+        placeholder="Notes"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        style={{
+          width: '100%',
+          minHeight: '100px',
+          padding: '12px',
+          borderRadius: '10px',
+          background: '#13131f',
+          color: 'white',
+          marginBottom: '20px'
+        }}
+      />
+
+      <button
+        onClick={saveRide}
+        style={{
+          width: '100%',
+          padding: '14px',
+          borderRadius: '12px',
+          border: 'none',
+          background: '#10b981',
+          color: 'white',
+          fontWeight: '800'
+        }}
+      >
+        Save Ride
+      </button>
+    </div>
+  )
+}
+
+const inputStyle = {
+  width: '100%',
+  padding: '12px',
+  marginBottom: '16px',
+  borderRadius: '10px',
+  background: '#13131f',
+  border: '1px solid #222',
+  color: 'white',
+  boxSizing: 'border-box' as const
+}
+function BoxingStats({ setActiveNav, boxingSessions }: any) {
+  const totalSessions = boxingSessions.length
+  const totalRounds = boxingSessions.reduce((sum: number, s: any) => sum + (s.rounds || 0), 0)
+  const totalPunches = boxingSessions.reduce((sum: number, s: any) => sum + (s.punches || 0), 0)
+  const totalLanded = boxingSessions.reduce((sum: number, s: any) => sum + (s.punchesLanded || 0), 0)
+  const accuracy = totalPunches > 0 ? Math.round((totalLanded / totalPunches) * 100) : 0
+  const avgFitness = totalSessions > 0
+  ? (boxingSessions.reduce((sum: number, s: any) => sum + (s.fitness || 0), 0) / totalSessions).toFixed(1)
+  : '0.0'
+
+const avgDefence = totalSessions > 0
+  ? (boxingSessions.reduce((sum: number, s: any) => sum + (s.defence || 0), 0) / totalSessions).toFixed(1)
+  : '0.0'
+
+const avgIntensity = totalSessions > 0
+  ? (boxingSessions.reduce((sum: number, s: any) => sum + (s.intensity || 0), 0) / totalSessions).toFixed(1)
+  : '0.0'
+
+  const totalJabs = boxingSessions.reduce((sum: number, s: any) => sum + (s.jabs || 0), 0)
+  const totalCrosses = boxingSessions.reduce((sum: number, s: any) => sum + (s.crosses || 0), 0)
+  const totalHooks = boxingSessions.reduce((sum: number, s: any) => sum + (s.hooks || 0), 0)
+  const totalUppercuts = boxingSessions.reduce((sum: number, s: any) => sum + (s.uppercuts || 0), 0)
+
+  const sparringSessions = boxingSessions.filter((s: any) => s.sessionType === 'Sparring').length
+  const knockdowns = boxingSessions.reduce((sum: number, s: any) => sum + (s.knockdowns || 0), 0)
+
+  const bestPunches = boxingSessions.length ? Math.max(...boxingSessions.map((s: any) => s.punches || 0)) : 0
+  const bestRounds = boxingSessions.length ? Math.max(...boxingSessions.map((s: any) => s.rounds || 0)) : 0
+  const longestSession = boxingSessions.length ? Math.max(...boxingSessions.map((s: any) => s.duration || 0)) : 0
+
+  const sessionTypes = ['Heavy Bag', 'Pad Work', 'Sparring', 'Technical Drills', 'Footwork', 'Strength & Conditioning']
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('boxing-hub')} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Boxing Stats</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Rounds, technical work, accuracy and training trends</p>
+
+        <div style={{ background: '#13131f', border: '1px solid #ef444425', borderLeft: '4px solid #ef4444', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ color: '#ef4444', fontSize: '13px', fontWeight: '900', marginBottom: '12px' }}>OVERVIEW</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            {[
+              { label: 'Sessions', value: totalSessions, color: '#ef4444' },
+              { label: 'Rounds', value: totalRounds, color: '#f97316' },
+{ label: 'Intensity', value: `${avgIntensity}/10`, color: '#06b6d4' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#0a0a0f', border: `1px solid ${stat.color}25`, borderRadius: '13px', padding: '13px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '22px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '10px', fontWeight: '700', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #f9731625', borderLeft: '4px solid #f97316', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ color: '#f97316', fontSize: '13px', fontWeight: '900', marginBottom: '12px' }}>PUNCH VOLUME</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {[
+            
+              { label: 'Accuracy', value: `${accuracy}%`, color: '#22c55e' },
+              { label: 'Jabs', value: totalJabs, color: '#06b6d4' },
+              { label: 'Crosses', value: totalCrosses, color: '#a855f7' },
+              { label: 'Hooks', value: totalHooks, color: '#f97316' },
+              { label: 'Uppercuts', value: totalUppercuts, color: '#eab308' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#0a0a0f', border: `1px solid ${stat.color}25`, borderRadius: '13px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '20px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '10px', fontWeight: '700', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #a855f725', borderLeft: '4px solid #a855f7', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ color: '#a855f7', fontSize: '13px', fontWeight: '900', marginBottom: '12px' }}>SESSION BREAKDOWN</div>
+
+          {sessionTypes.map((type) => {
+            const count = boxingSessions.filter((s: any) => s.sessionType === type).length
+            const percent = totalSessions > 0 ? Math.round((count / totalSessions) * 100) : 0
+
+            return (
+              <div key={type} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '5px' }}>
+                  <span style={{ color: '#aaa', fontWeight: '700' }}>{type}</span>
+                  <span style={{ color: '#666' }}>{count} sessions · {percent}%</span>
+                </div>
+                <div style={{ height: '7px', background: '#0a0a0f', borderRadius: '999px', overflow: 'hidden' }}>
+                  <div style={{ width: `${percent}%`, height: '100%', background: '#ef4444' }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #22c55e25', borderLeft: '4px solid #22c55e', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ color: '#22c55e', fontSize: '13px', fontWeight: '900', marginBottom: '12px' }}>PERSONAL BESTS</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            {[
+              { label: 'Best Fitness', value: `${avgFitness}/10`, color: '#ef4444' },
+              { label: 'Most Rounds', value: bestRounds, color: '#f97316' },
+              { label: 'Longest', value: `${longestSession}m`, color: '#06b6d4' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#0a0a0f', border: `1px solid ${stat.color}25`, borderRadius: '13px', padding: '13px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '19px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '9px', fontWeight: '700', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #06b6d425', borderLeft: '4px solid #06b6d4', borderRadius: '18px', padding: '18px', marginBottom: '20px' }}>
+          <div style={{ color: '#06b6d4', fontSize: '13px', fontWeight: '900', marginBottom: '12px' }}>SPARRING</div>
+          <div style={{ color: '#aaa', fontSize: '14px' }}>
+            {sparringSessions} sparring sessions · {knockdowns} knockdowns
+          </div>
+        </div>
+
+        <h2 style={{ fontSize: '18px', fontWeight: '900', margin: '0 0 14px' }}>Recent Sessions</h2>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {boxingSessions.length === 0 && (
+            <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '14px', padding: '16px', color: '#666' }}>
+              No boxing sessions logged yet.
+            </div>
+          )}
+
+          {boxingSessions.slice(0, 6).map((session: any) => (
+            <div key={session.id} style={{ background: '#13131f', border: '1px solid #ef444425', borderLeft: '4px solid #ef4444', borderRadius: '14px', padding: '14px 16px' }}>
+              <div style={{ fontWeight: '800', fontSize: '14px' }}>{session.sessionType}</div>
+              <div style={{ color: '#666', fontSize: '12px', marginTop: '4px' }}>
+                {session.duration || 0} mins · {session.rounds || 0} rounds · {session.punches || 0} punches
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+function SuggestedBoxingSessions({ setActiveNav, setSelectedBoxingCategory }: any) {
+  const categories = [
+    { label: 'Punching Power', emoji: '🥊', color: '#ef4444', desc: 'Build stronger shots, hip rotation and heavy bag power' },
+    { label: 'Speed & Combinations', emoji: '⚡', color: '#f97316', desc: 'Improve hand speed, rhythm, punch flow and combinations' },
+    { label: 'Defence', emoji: '🛡️', color: '#06b6d4', desc: 'Slips, rolls, blocks, parries and counter-punching' },
+    { label: 'Footwork', emoji: '👣', color: '#a855f7', desc: 'Movement, angles, pivots, balance and ring control' },
+    { label: 'Conditioning', emoji: '🔥', color: '#22c55e', desc: 'Boxing fitness, repeated rounds, explosiveness and endurance' },
+    { label: 'Sparring Prep', emoji: '🥊', color: '#eab308', desc: 'Prepare for live rounds with controlled technical work' },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('boxing-hub')} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>Boxing Training</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Choose an area to improve</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {categories.map((cat) => (
+            <div
+              key={cat.label}
+              onClick={() => {
+                setSelectedBoxingCategory(cat.label)
+                setActiveNav('boxing-session-detail')
+              }}
+              style={{ background: '#13131f', border: `1px solid ${cat.color}25`, borderLeft: `4px solid ${cat.color}`, borderRadius: '18px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+            >
+              <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: `${cat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>{cat.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '900', fontSize: '16px' }}>{cat.label}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '4px', lineHeight: '1.4' }}>{cat.desc}</div>
+              </div>
+              <div style={{ color: cat.color, fontSize: '22px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function BoxingSessionDetail({ category, setActiveNav }: any) {
+  const sessionData: any = {
+    'Punching Power': {
+      emoji: '🥊',
+      color: '#ef4444',
+      sections: [
+        {
+          title: 'Heavy Bag Power',
+          drills: [
+            {
+              name: 'Power Jab',
+              setup: 'Throw single jabs with full hip rotation, balance and shoulder snap. Reset your stance after every punch.',
+              reps: '3 x 2 min rounds',
+              tip: 'Power starts from your feet and hips, not just your arm.'
+            },
+            {
+              name: 'Power Combinations',
+              setup: 'Throw 1-2, 1-2-hook and jab-cross-body hook combinations at controlled power.',
+              reps: '4 x 2 min rounds',
+              tip: 'Stay balanced after every combination so you can defend or move.'
+            },
+            {
+              name: 'Body Shot Rounds',
+              setup: 'Work hooks and straight shots to the body on the heavy bag. Bend your knees and punch through the target.',
+              reps: '3 rounds',
+              tip: 'Do not lean forward. Level change with your legs.'
+            }
+          ]
+        }
+      ]
+    },
+
+    'Speed & Combinations': {
+      emoji: '⚡',
+      color: '#f97316',
+      sections: [
+        {
+          title: 'Speed & Flow',
+          drills: [
+            {
+              name: 'Rapid Fire Jab',
+              setup: 'Throw fast jabs continuously while keeping your guard high and feet active.',
+              reps: '30 sec on / 30 sec off x 6',
+              tip: 'Relax your shoulders. Tension makes you slower.'
+            },
+            {
+              name: '3-Punch Flow',
+              setup: 'Work smooth 3-punch combinations on pads or bag. Focus on rhythm and clean technique.',
+              reps: '5 rounds',
+              tip: 'Speed comes from staying loose, not rushing.'
+            },
+            {
+              name: 'Combo Ladder',
+              setup: 'Build from 2 punches to 5 punches: 1-2, 1-2-3, 1-2-3-2, then add a defensive move.',
+              reps: '10 minutes',
+              tip: 'Always finish combos with your hands back to guard.'
+            }
+          ]
+        }
+      ]
+    },
+
+    Defence: {
+      emoji: '🛡️',
+      color: '#06b6d4',
+      sections: [
+        {
+          title: 'Defensive Reactions',
+          drills: [
+            {
+              name: 'Slip Line',
+              setup: 'Move under a rope while stepping forward and backwards. Add counters after each slip.',
+              reps: '5 mins',
+              tip: 'Move your feet and body together, not just your head.'
+            },
+            {
+              name: 'Roll & Counter',
+              setup: 'Practise rolling under hooks, then return with hook-cross or hook-hook combinations.',
+              reps: '3 rounds',
+              tip: 'Keep your eyes on your opponent during the roll.'
+            },
+            {
+              name: 'Block-Parry-Counter',
+              setup: 'Partner throws light jabs and crosses. Block or parry, then counter with one clean shot.',
+              reps: '4 x 2 min rounds',
+              tip: 'Defence should lead into attack, not just survival.'
+            }
+          ]
+        }
+      ]
+    },
+
+    Footwork: {
+      emoji: '👣',
+      color: '#a855f7',
+      sections: [
+        {
+          title: 'Movement & Angles',
+          drills: [
+            {
+              name: 'Box Step Drill',
+              setup: 'Move around a marked square while maintaining stance, guard and balance.',
+              reps: '5 mins',
+              tip: 'Never cross your feet. Small steps keep you balanced.'
+            },
+            {
+              name: 'Pivot Drill',
+              setup: 'Step and pivot around an imaginary opponent after throwing a jab or 1-2.',
+              reps: '3 rounds',
+              tip: 'The aim is to create an angle, not just spin in place.'
+            },
+            {
+              name: 'In-Out Movement',
+              setup: 'Step into range with a jab, then step back out before an imaginary counter.',
+              reps: '4 rounds',
+              tip: 'Do not admire your work. Hit, move, reset.'
+            }
+          ]
+        }
+      ]
+    },
+
+    Conditioning: {
+      emoji: '🔥',
+      color: '#22c55e',
+      sections: [
+        {
+          title: 'Fight Fitness',
+          drills: [
+            {
+              name: 'Sprint Intervals',
+              setup: 'Sprint for 30 seconds, walk for 30 seconds. Keep every sprint explosive.',
+              reps: '10 rounds',
+              tip: 'Boxing fitness is repeated high-intensity efforts.'
+            },
+            {
+              name: 'Burpee Finisher',
+              setup: 'Perform explosive burpees with good form. Add a shadow boxing combo after every 5 reps.',
+              reps: '50 total',
+              tip: 'Stay sharp when tired. That is the point of the drill.'
+            },
+            {
+              name: '3-Minute Fight Rounds',
+              setup: 'Shadow box, sprawl, punch-out and move continuously for full rounds.',
+              reps: '4 x 3 min rounds',
+              tip: 'Pace yourself like a real round: bursts, movement, recovery.'
+            }
+          ]
+        }
+      ]
+    },
+
+    'Sparring Prep': {
+      emoji: '🥊',
+      color: '#eab308',
+      sections: [
+        {
+          title: 'Pre-Sparring Control',
+          drills: [
+            {
+              name: 'Controlled Technical Spar',
+              setup: 'Work at 50% intensity focusing on movement, defence and clean counters.',
+              reps: '4 rounds',
+              tip: 'Winning exchanges is less important than learning.'
+            },
+            {
+              name: 'Reaction Drill',
+              setup: 'Partner gives visual cues. React with slip, block, parry, counter or movement.',
+              reps: '10 mins',
+              tip: 'React to what you see. Do not guess.'
+            },
+            {
+              name: 'Jab-Only Sparring',
+              setup: 'Light sparring where both fighters can only use the jab. Focus on distance and timing.',
+              reps: '3 rounds',
+              tip: 'The jab controls range, rhythm and pressure.'
+            }
+          ]
+        }
+      ]
+    }
+  }
+
+  const data = sessionData[category]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('boxing-plans')} style={{ background: 'none', border: 'none', color: data.color, fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>
+          ← Back
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+          <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: `2px solid ${data.color}`, background: `${data.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
+            {data.emoji}
+          </div>
+
+          <div>
+            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '900' }}>{category}</h1>
+            <p style={{ color: '#666', margin: '4px 0 0', fontSize: '13px' }}>Boxing development drills</p>
+          </div>
+        </div>
+
+        {data.sections.map((section: any) => (
+          <div key={section.title} style={{ marginBottom: '24px' }}>
+            <h2 style={{ color: data.color, fontSize: '13px', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '14px' }}>
+              {section.title}
+            </h2>
+
+            {section.drills.map((drill: any) => (
+              <div
+                key={drill.name}
+                style={{
+                  background: '#13131f',
+                  border: `1px solid ${data.color}25`,
+                  borderLeft: `4px solid ${data.color}`,
+                  borderRadius: '16px',
+                  padding: '16px',
+                  marginBottom: '12px'
+                }}
+              >
+                <div style={{ fontWeight: '900', marginBottom: '6px', fontSize: '15px' }}>
+                  {drill.name}
+                </div>
+
+                <div style={{ color: '#aaa', fontSize: '13px', marginBottom: '10px', lineHeight: '1.5' }}>
+                  {drill.setup}
+                </div>
+
+                <div style={{ display: 'inline-block', color: data.color, background: `${data.color}18`, border: `1px solid ${data.color}35`, borderRadius: '999px', padding: '5px 10px', fontSize: '11px', fontWeight: '900', marginBottom: '10px' }}>
+                  📋 {drill.reps}
+                </div>
+
+                <div style={{ background: '#0a0a0f', border: `1px solid ${data.color}25`, borderRadius: '12px', padding: '10px', color: '#888', fontSize: '12px', lineHeight: '1.5' }}>
+                  <strong style={{ color: data.color }}>💡 Coaching tip:</strong> {drill.tip}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+  
+  
+function LogBasketball({ setActiveNav, basketballSessions, setBasketballSessions, addSocialPost }: any) {
+  const [sessionType, setSessionType] = useState('')
+  const [duration, setDuration] = useState('')
+  const [points, setPoints] = useState('')
+  const [assists, setAssists] = useState('')
+  const [rebounds, setRebounds] = useState('')
+  const [steals, setSteals] = useState('')
+  const [blocks, setBlocks] = useState('')
+  const [shotsMade, setShotsMade] = useState('')
+  const [shotsTaken, setShotsTaken] = useState('')
+  const [focus, setFocus] = useState('')
+  const [notes, setNotes] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  const handleSave = async () => {
+    const newSession = {
+      id: Date.now(),
+      sessionType,
+      duration: parseInt(duration) || 0,
+      points: parseInt(points) || 0,
+      assists: parseInt(assists) || 0,
+      rebounds: parseInt(rebounds) || 0,
+      steals: parseInt(steals) || 0,
+      blocks: parseInt(blocks) || 0,
+      shotsMade: parseInt(shotsMade) || 0,
+      shotsTaken: parseInt(shotsTaken) || 0,
+      focus,
+      notes,
+      date: new Date().toISOString().split('T')[0]
+    }
+
+    setBasketballSessions([newSession, ...basketballSessions])
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      await supabase.from('basketball_sessions').insert({
+        user_id: session.user.id,
+        session_type: sessionType,
+        duration: parseInt(duration) || 0,
+        points: parseInt(points) || 0,
+        assists: parseInt(assists) || 0,
+        rebounds: parseInt(rebounds) || 0,
+        steals: parseInt(steals) || 0,
+        blocks: parseInt(blocks) || 0,
+        shots_made: parseInt(shotsMade) || 0,
+        shots_taken: parseInt(shotsTaken) || 0,
+        focus,
+        notes
+      })
+    }
+
+    addSocialPost({
+      sport: 'Basketball',
+      sportColor: '#f97316',
+      emoji: '🏀',
+      caption: `Logged a ${sessionType || 'basketball session'} — ${points || 0} points, ${assists || 0} assists and ${rebounds || 0} rebounds.`
+    })
+
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('basketball-hub')} style={{ background: 'none', border: 'none', color: '#f97316', fontSize: '14px', fontWeight: '700', cursor: 'pointer', padding: '0 0 16px' }}>← Back</button>
+
+        <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>Log Basketball</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 26px' }}>Track games, training and shooting volume</p>
+
+        <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '700', display: 'block', marginBottom: '10px' }}>SESSION TYPE</label>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+          {['Game', 'Skills', 'Training'].map((type) => (
+            <button key={type} onClick={() => setSessionType(type)} style={{ background: sessionType === type ? '#f9731620' : '#13131f', border: `1.5px solid ${sessionType === type ? '#f97316' : '#1e1e30'}`, borderRadius: '10px', color: sessionType === type ? '#f97316' : '#666', padding: '10px 14px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>{type}</button>
+          ))}
+        </div>
+
+        {sessionType && (
+          <>
+            <input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="Duration minutes" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', marginBottom: '14px', boxSizing: 'border-box' }} />
+
+            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '700', display: 'block', marginBottom: '10px' }}>
+  {sessionType === 'Game' ? 'GAME TYPE' : sessionType === 'Skills' ? 'SKILL FOCUS' : 'TRAINING FOCUS'}
+</label>
+
+<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
+  {(sessionType === 'Game'
+    ? ['5v5 Match', '3v3', '1v1', 'Scrimmage']
+    : sessionType === 'Skills'
+    ? ['Shooting', 'Handles', 'Finishing', 'Passing', 'Defence']
+    : ['Conditioning', 'Agility', 'Strength', 'Footwork', 'Team Training']
+  ).map((f) => (
+    <button key={f} onClick={() => setFocus(f)} style={{ background: focus === f ? '#f9731620' : '#13131f', border: `1.5px solid ${focus === f ? '#f97316' : '#1e1e30'}`, borderRadius: '20px', color: focus === f ? '#f97316' : '#666', padding: '7px 13px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>{f}</button>
+  ))}
+</div>
+
+{sessionType === 'Game' && (
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+    {[
+      ['Points', points, setPoints],
+      ['Assists', assists, setAssists],
+      ['Rebounds', rebounds, setRebounds],
+      ['Steals', steals, setSteals],
+      ['Blocks', blocks, setBlocks],
+      ['Shots Made', shotsMade, setShotsMade],
+      ['Shots Taken', shotsTaken, setShotsTaken],
+    ].map(([label, value, setter]: any) => (
+      <div key={label}>
+        <label style={{ fontSize: '11px', color: '#666', display: 'block', marginBottom: '6px' }}>{label}</label>
+        <input value={value} onChange={(e) => setter(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '16px', fontWeight: '800', textAlign: 'center', boxSizing: 'border-box' }} />
+      </div>
+    ))}
+  </div>
+)}
+
+{(sessionType === 'Skills' || sessionType === 'Training') && (
+  <div style={{ marginBottom: '18px' }}>
+    <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '700', display: 'block', marginBottom: '10px' }}>
+      {sessionType === 'Skills' ? 'DRILLS COMPLETED' : 'TRAINING WORK COMPLETED'}
+    </label>
+
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+      {(sessionType === 'Skills'
+        ? ['Form Shooting', 'Free Throws', '3 Point Shooting', 'Layups', 'Ball Handling', 'Crossover Work', 'Passing', 'Defensive Slides']
+        : ['Conditioning Runs', 'Agility Ladder', 'Defensive Footwork', 'Sprint Intervals', 'Strength Work', 'Plyometrics', 'Team Practice', 'Recovery']
+      ).map((drill) => (
+        <button
+          key={drill}
+          onClick={() => setNotes(notes ? notes + `, ${drill}` : drill)}
+          style={{
+            background: '#f9731615',
+            border: '1px solid #f9731640',
+            borderRadius: '20px',
+            color: '#f97316',
+            padding: '7px 12px',
+            fontSize: '12px',
+            fontWeight: '700',
+            cursor: 'pointer'
+          }}
+        >
+          + {drill}
+        </button>
+      ))}
+    </div>
+
+    <div style={{ color: '#666', fontSize: '12px', lineHeight: '1.5' }}>
+      Tap drills to add them to your notes, or type your own below.
+    </div>
+    <input
+  placeholder={
+    sessionType === 'Skills'
+      ? 'Type your own drill (e.g. Step-back shooting, weak-hand layups...)'
+      : 'Type your own training activity (e.g. hill sprints, gym session...)'
+  }
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+      setNotes(notes ? notes + `, ${e.currentTarget.value}` : e.currentTarget.value)
+      e.currentTarget.value = ''
+    }
+  }}
+  style={{
+    width: '100%',
+    marginTop: '12px',
+    background: '#13131f',
+    border: '1.5px solid #1e1e30',
+    borderRadius: '10px',
+    color: 'white',
+    padding: '12px',
+    boxSizing: 'border-box'
+  }}
+/>
+  </div>
+)}
+
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes: what went well, what to improve?" rows={3} style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '14px', resize: 'none', boxSizing: 'border-box', fontFamily: 'system-ui, sans-serif', marginBottom: '24px' }} />
+
+            <button onClick={handleSave} style={{ width: '100%', background: saved ? '#ea580c' : 'linear-gradient(135deg, #f97316, #ea580c)', border: 'none', borderRadius: '14px', color: 'white', padding: '16px', fontSize: '16px', fontWeight: '900', cursor: 'pointer' }}>
+              {saved ? '✓ Basketball Session Saved!' : 'Save Session'}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
 function SwimmingHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   const options = [
     { id: 'log-swim', label: 'Log Swim', emoji: '📝', desc: 'Distance, stroke, lengths and pace', color: '#3b82f6' },
@@ -3506,6 +7076,12 @@ function TrackPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
     { id: 'tennis-hub', name: 'Tennis', emoji: '🎾', color: '#eab308', sessions: 8 },
     { id: 'running-hub', name: 'Running', emoji: '🏃', color: '#06b6d4', sessions: 15 },
     { id: 'swimming-hub', name: 'Swimming', emoji: '🏊', color: '#3b82f6', sessions: 0 },
+    { id: 'basketball-hub', name: 'Basketball', emoji: '🏀', color: '#f97316', sessions: 0 },
+    { id: 'cycling-hub', name: 'Cycling', emoji: '🚴', color: '#10b981', sessions: 0 },
+{ id: 'golf-hub', name: 'Golf', emoji: '⛳', color: '#84cc16', sessions: 0 },
+{ id: 'boxing-hub', name: 'Boxing', emoji: '🥊', color: '#ef4444', sessions: 0 },
+{ id: 'rugby-hub', name: 'Rugby', emoji: '🏉', color: '#f59e0b', sessions: 0 },
+{ id: 'cricket-hub', name: 'Cricket', emoji: '🏏', color: '#06b6d4', sessions: 0 },
   ]
 
   return (
@@ -3575,6 +7151,11 @@ function SportsPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
     Running: 'running marathon athletics',
     Swimming: 'swimming',
     Basketball: 'basketball NBA',
+    Cycling: 'cycling tour de france',
+Golf: 'golf PGA',
+Boxing: 'boxing',
+Rugby: 'rugby',
+Cricket: 'cricket',
   }
 
   const fetchNews = async (sport: string) => {
@@ -3700,7 +7281,18 @@ function SportsPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
 }
 export default function Home() {
   const [activeNav, setActiveNav] = useState('home')
+  const [weeklyGoalTarget, setWeeklyGoalTarget] = useState(() => {
+    if (typeof window === 'undefined') return 5
+    return parseInt(localStorage.getItem('weeklyGoalTarget') || '5')
+  })
+  const [showGoalSetter, setShowGoalSetter] = useState(false)
+  useEffect(() => {
+    localStorage.setItem('weeklyGoalTarget', weeklyGoalTarget.toString())
+  }, [weeklyGoalTarget])
 const [activeSport, setActiveSport] = useState<string | null>(null);
+const [selectedBasketballCategory, setSelectedBasketballCategory] = useState('')
+const [selectedBoxingCategory, setSelectedBoxingCategory] = useState('')
+const [selectedCyclingCategory, setSelectedCyclingCategory] = useState('')
 const [user, setUser] = useState<any>(null)
 const [authLoading, setAuthLoading] = useState(true)
 const [tennisSessions, setTennisSessions] = useState<any[]>(() => {
@@ -3730,6 +7322,69 @@ const [swimmingSessions, setSwimmingSessions] = useState<any[]>(() => {
   const saved = localStorage.getItem('swimmingSessions')
   return saved ? JSON.parse(saved) : []
 })
+const [basketballSessions, setBasketballSessions] = useState<any[]>(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('basketballSessions')
+  return saved ? JSON.parse(saved) : []
+})
+
+useEffect(() => {
+  localStorage.setItem('basketballSessions', JSON.stringify(basketballSessions))
+}, [basketballSessions])
+const [boxingSessions, setBoxingSessions] = useState<any[]>(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('boxingSessions')
+  return saved ? JSON.parse(saved) : []
+})
+const [cyclingSessions, setCyclingSessions] = useState<any[]>(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('cyclingSessions')
+  return saved ? JSON.parse(saved) : []
+})
+const [golfSessions, setGolfSessions] = useState<any[]>([])
+const [rugbySessions, setRugbySessions] = useState<any[]>([])
+const [cricketSessions, setCricketSessions] = useState<any[]>([])
+
+useEffect(() => {
+  const loadSessions = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const uid = session.user.id
+
+    const [golf, rugby, cricket, basketball, boxing, cycling] = await Promise.all([
+      supabase.from('golf_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      supabase.from('rugby_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      supabase.from('cricket_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      supabase.from('basketball_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      supabase.from('boxing_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      supabase.from('cycling_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+    ])
+
+    if (golf.data) setGolfSessions(golf.data)
+    if (rugby.data) setRugbySessions(rugby.data)
+    if (cricket.data) setCricketSessions(cricket.data)
+    if (basketball.data) setBasketballSessions(basketball.data)
+    if (boxing.data) setBoxingSessions(boxing.data.map((s: any) => ({
+      ...s,
+      sessionType: s.session_type,
+      punchesLanded: s.punches_landed,
+    })))
+    if (cycling.data) setCyclingSessions(cycling.data.map((s: any) => ({
+      ...s,
+      rideType: s.ride_type,
+      avgSpeed: s.avg_speed,
+    })))
+  }
+  loadSessions()
+}, [user])
+
+useEffect(() => {
+  localStorage.setItem('cyclingSessions', JSON.stringify(cyclingSessions))
+}, [cyclingSessions])
+
+useEffect(() => {
+  localStorage.setItem('boxingSessions', JSON.stringify(boxingSessions))
+}, [boxingSessions])
 
 const [swimmingPRs, setSwimmingPRs] = useState<any[]>(() => {
   if (typeof window === 'undefined') return []
@@ -3765,6 +7420,9 @@ useEffect(() => {
 useEffect(() => {
   localStorage.setItem('socialPosts', JSON.stringify(socialPosts))
 }, [socialPosts])
+useEffect(() => {
+  localStorage.setItem('weeklyGoalTarget', weeklyGoalTarget.toString())
+}, [weeklyGoalTarget])
 
 const addSocialPost = (post: any) => {
   setSocialPosts((prev) => [
@@ -3867,6 +7525,205 @@ if (activeNav === 'running-hub') {
 }
 if (activeNav === 'swimming-hub') {
   return <SwimmingHub setActiveNav={setActiveNav} />
+}
+if (activeNav === 'basketball-hub') {
+  return (
+    <BasketballHub
+      setActiveNav={setActiveNav}
+      basketballSessions={basketballSessions}
+    />
+  )
+}
+if (activeNav === 'golf-hub') {
+  return <GolfHub setActiveNav={setActiveNav} golfSessions={golfSessions} />
+}
+if (activeNav === 'log-golf') {
+  return <LogGolf setActiveNav={setActiveNav} golfSessions={golfSessions} setGolfSessions={setGolfSessions} addSocialPost={addSocialPost} />
+}
+if (activeNav === 'golf-stats') {
+  return <GolfStats setActiveNav={setActiveNav} golfSessions={golfSessions} />
+}
+if (activeNav === 'golf-plans') {
+  return <SuggestedGolfSessions setActiveNav={setActiveNav} />
+}
+if (activeNav === 'rugby-hub') {
+  return <RugbyHub setActiveNav={setActiveNav} rugbySessions={rugbySessions} />
+}
+if (activeNav === 'log-rugby') {
+  return <LogRugby setActiveNav={setActiveNav} rugbySessions={rugbySessions} setRugbySessions={setRugbySessions} addSocialPost={addSocialPost} />
+}
+if (activeNav === 'rugby-stats') {
+  return <RugbyStats setActiveNav={setActiveNav} rugbySessions={rugbySessions} />
+}
+if (activeNav === 'rugby-plans') {
+  return <SuggestedRugbySessions setActiveNav={setActiveNav} />
+}
+if (activeNav === 'cricket-hub') {
+  return <CricketHub setActiveNav={setActiveNav} cricketSessions={cricketSessions} />
+}
+if (activeNav === 'log-cricket') {
+  return <LogCricket setActiveNav={setActiveNav} cricketSessions={cricketSessions} setCricketSessions={setCricketSessions} addSocialPost={addSocialPost} />
+}
+if (activeNav === 'cricket-stats') {
+  return <CricketStats setActiveNav={setActiveNav} cricketSessions={cricketSessions} />
+}
+if (activeNav === 'cricket-plans') {
+  return <SuggestedCricketSessions setActiveNav={setActiveNav} />
+}
+if (activeNav === 'cycling-hub') {
+  return (
+    <CyclingHub
+      setActiveNav={setActiveNav}
+      cyclingSessions={cyclingSessions}
+    />
+  )
+}
+if (activeNav === 'cycling-stats') {
+  return (
+    <CyclingStats
+      setActiveNav={setActiveNav}
+      cyclingSessions={cyclingSessions}
+    />
+  )
+}
+if (activeNav === 'cycling-records') {
+  return (
+    <CyclingRecords
+      setActiveNav={setActiveNav}
+      cyclingSessions={cyclingSessions}
+    />
+  )
+}
+if (activeNav === 'cycling-plans') {
+  return (
+    <SuggestedCyclingSessions
+      setActiveNav={setActiveNav}
+      setSelectedCyclingCategory={setSelectedCyclingCategory}
+    />
+  )
+}
+if (activeNav === 'cycling-achievements') {
+  return (
+    <CyclingAchievements
+      setActiveNav={setActiveNav}
+      cyclingSessions={cyclingSessions}
+    />
+  )
+}
+
+if (activeNav === 'cycling-session-detail') {
+  return (
+    <CyclingSessionDetail
+      category={selectedCyclingCategory}
+      setActiveNav={setActiveNav}
+    />
+  )
+}
+
+if (activeNav === 'log-basketball') {
+  return (
+    <LogBasketball
+      setActiveNav={setActiveNav}
+      basketballSessions={basketballSessions}
+      setBasketballSessions={setBasketballSessions}
+      addSocialPost={addSocialPost}
+    />
+  )
+}
+
+if (activeNav === 'basketball-stats') {
+  return (
+    <BasketballStats
+      setActiveNav={setActiveNav}
+      basketballSessions={basketballSessions}
+    />
+  )
+}
+
+if (activeNav === 'basketball-plans') {
+  return (
+    <SuggestedBasketballSessions
+      setActiveNav={setActiveNav}
+      setSelectedBasketballCategory={setSelectedBasketballCategory}
+    />
+  )
+}
+
+if (activeNav === 'basketball-session-detail') {
+  return (
+    <BasketballSessionDetail
+      category={selectedBasketballCategory}
+      setActiveNav={setActiveNav}
+    />
+  )
+}
+
+if (activeNav === 'basketball-session-detail') {
+  return (
+    <BasketballSessionDetail
+      category={selectedBasketballCategory}
+      setActiveNav={setActiveNav}
+    />
+  )
+}
+if (activeNav === 'basketball-fixtures') {
+  return <BasketballFixtures setActiveNav={setActiveNav} />
+}
+if (activeNav === 'boxing-hub') {
+  return (
+    <BoxingHub
+      setActiveNav={setActiveNav}
+      boxingSessions={boxingSessions}
+    />
+  )
+}
+
+if (activeNav === 'log-boxing') {
+  return (
+    <LogBoxing
+      setActiveNav={setActiveNav}
+      boxingSessions={boxingSessions}
+      setBoxingSessions={setBoxingSessions}
+      addSocialPost={addSocialPost}
+    />
+  )
+}
+if (activeNav === 'log-cycling') {
+  return (
+    <LogCycling
+      setActiveNav={setActiveNav}
+      cyclingSessions={cyclingSessions}
+      setCyclingSessions={setCyclingSessions}
+      addSocialPost={addSocialPost}
+    />
+  )
+}
+
+if (activeNav === 'boxing-stats') {
+  return (
+    <BoxingStats
+      setActiveNav={setActiveNav}
+      boxingSessions={boxingSessions}
+    />
+  )
+}
+
+if (activeNav === 'boxing-plans') {
+  return (
+    <SuggestedBoxingSessions
+      setActiveNav={setActiveNav}
+      setSelectedBoxingCategory={setSelectedBoxingCategory}
+    />
+  )
+}
+
+if (activeNav === 'boxing-session-detail') {
+  return (
+    <BoxingSessionDetail
+      category={selectedBoxingCategory}
+      setActiveNav={setActiveNav}
+    />
+  )
 }
 if (activeNav === 'log-swim') {
   return (
@@ -3978,8 +7835,19 @@ if (activeNav === 'social') {
   return <SocialPage setActiveNav={setActiveNav} socialPosts={socialPosts} />
 }
 if (activeNav === 'profile') {
-  return <ProfilePage setActiveNav={setActiveNav} tennisSessions={tennisSessions} runningSessions={runningSessions} swimmingSessions={swimmingSessions} />
+  return <ProfilePage setActiveNav={setActiveNav} tennisSessions={tennisSessions} runningSessions={runningSessions} swimmingSessions={swimmingSessions} basketballSessions={basketballSessions} boxingSessions={boxingSessions} cyclingSessions={cyclingSessions} golfSessions={golfSessions} rugbySessions={rugbySessions} cricketSessions={cricketSessions} />
 }
+date: new Date().toISOString().split('T')[0]
+
+const todayStr = new Date().toISOString().split('T')[0]
+
+
+const totalSessions =
+  tennisSessions.filter((s: any) => s.date === todayStr).length +
+  runningSessions.filter((s: any) => s.date === todayStr).length +
+  swimmingSessions.filter((s: any) => s.date === todayStr).length
+const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 100), 100)
+
 
 
 
@@ -4068,7 +7936,8 @@ if (activeNav === 'profile') {
           }}
         >
           <div
-            style={{ position: 'relative', width: '180px', height: '180px' }}
+            onClick={() => setShowGoalSetter(true)}
+            style={{ position: 'relative', width: '180px', height: '180px', cursor: 'pointer' }}
           >
             <svg
               width="180"
@@ -4091,9 +7960,7 @@ if (activeNav === 'profile') {
                 stroke="url(#gradient)"
                 strokeWidth="12"
                 strokeLinecap="round"
-                strokeDasharray={`${2 * Math.PI * 75 * 0.72} ${
-                  2 * Math.PI * 75
-                }`}
+                strokeDasharray={`${2 * Math.PI * 75 * (weeklyProgress / 100)} ${2 * Math.PI * 75}`}
               />
               <defs>
                 <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -4111,11 +7978,12 @@ if (activeNav === 'profile') {
                 textAlign: 'center',
               }}
             >
-              <div style={{ fontSize: '36px', fontWeight: '800' }}>72%</div>
-              <div
-                style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}
-              >
-                Weekly Goal
+              <div style={{ fontSize: '36px', fontWeight: '800' }}>{weeklyProgress}%</div>
+              <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
+                {totalSessions}/{weeklyGoalTarget} sessions
+              </div>
+              <div style={{ fontSize: '10px', color: '#a855f7', marginTop: '4px', fontWeight: '600' }}>
+                tap to set goal
               </div>
             </div>
           </div>
@@ -4238,6 +8106,20 @@ if (activeNav === 'profile') {
         </div>
       </div>
 
+      {showGoalSetter && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '24px' }}>
+          <div style={{ background: '#13131f', border: '1px solid #2a2a40', borderRadius: '20px', padding: '28px 24px', width: '100%', maxWidth: '340px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 8px', color: 'white' }}>Weekly Session Goal</h2>
+            <p style={{ color: '#666', fontSize: '13px', margin: '0 0 24px' }}>How many sessions do you want to complete this week?</p>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', justifyContent: 'center' }}>
+              {[3, 4, 5, 6, 7].map((n) => (
+                <button key={n} onClick={() => setWeeklyGoalTarget(n)} style={{ width: '48px', height: '48px', borderRadius: '12px', background: weeklyGoalTarget === n ? '#a855f720' : '#0a0a0f', border: `2px solid ${weeklyGoalTarget === n ? '#a855f7' : '#1e1e30'}`, color: weeklyGoalTarget === n ? '#a855f7' : '#666', fontSize: '18px', fontWeight: '800', cursor: 'pointer' }}>{n}</button>
+              ))}
+            </div>
+            <button onClick={() => setShowGoalSetter(false)} style={{ width: '100%', background: 'linear-gradient(135deg, #a855f7, #06b6d4)', border: 'none', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', fontWeight: '800', cursor: 'pointer' }}>Save Goal</button>
+          </div>
+        </div>
+      )}
       {/* Bottom Nav */}
       <div
         style={{
