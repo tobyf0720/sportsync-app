@@ -23,10 +23,10 @@ const sports = [
 ];
 
 const suggestedWorkouts = [
-  { title: 'HIIT Cardio', duration: '20min', emoji: '🔥' },
-  { title: 'Upper Body Strength', duration: '45min', emoji: '💪' },
-  { title: 'Passing Drills', duration: '30min', emoji: '⚽' },
-  { title: 'Agility Ladder', duration: '20min', emoji: '⚡' },
+  { title: 'HIIT Cardio', duration: '20min', emoji: '🔥', nav: 'gym-hub' },
+  { title: 'Upper Body Strength', duration: '45min', emoji: '💪', nav: 'gym-hub' },
+  { title: 'Passing Drills', duration: '30min', emoji: '⚽', nav: 'football-hub' },
+  { title: 'Agility Ladder', duration: '20min', emoji: '⚡', nav: 'running-hub' },
 ];
 
 function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
@@ -3572,91 +3572,343 @@ const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settin
   )
 }
 
-function SocialPage({ setActiveNav, socialPosts }: any) {
+function SocialPage({ setActiveNav, socialPosts, user }: any) {
   const [activeNav, setActiveNavLocal] = useState('social')
-  const [likedPosts, setLikedPosts] = useState<number[]>([])
+  const [posts, setPosts] = useState<any[]>([])
+  const [likedPosts, setLikedPosts] = useState<string[]>([])
+  const [showCreate, setShowCreate] = useState(false)
+  const [caption, setCaption] = useState('')
+  const [sport, setSport] = useState('General')
+  const [posting, setPosting] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [expandedComments, setExpandedComments] = useState<string | null>(null)
+  const [commentText, setCommentText] = useState('')
+  const [comments, setComments] = useState<Record<string, any[]>>({})
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  const defaultPosts = [
-    { id: 1, user: 'Toby Furlong', handle: '@tobyfurlong', sport: 'Football', sportColor: '#22c55e', emoji: '⚽', time: 'Just now', caption: 'Banged in 2 goals tonight! We won 4-2 in 5-a-side. Buzzing.', likes: 24, comments: 8, hasMedia: true, mediaBg: 'linear-gradient(135deg, #1a3a1a, #0a1a0a)' },
-    { id: 2, user: 'Marcus R.', handle: '@marcusr', sport: 'Gym', sportColor: '#a855f7', emoji: '🏋️', time: '5 hours ago', caption: 'New PB on deadlift today - 140kg! Feeling strong.', likes: 42, comments: 12, hasMedia: true, mediaBg: 'linear-gradient(135deg, #1a0a2e, #0a0a1a)' },
-    { id: 3, user: 'Sarah K.', handle: '@sarahk', sport: 'Running', sportColor: '#06b6d4', emoji: '🏃', time: 'Yesterday', caption: 'Sub-25 min 5K! Training is paying off. Who wants to race next week?', likes: 31, comments: 6, hasMedia: true, mediaBg: 'linear-gradient(135deg, #0a1a2e, #0a0a1a)' },
-    { id: 4, user: 'Jake M.', handle: '@jakем', sport: 'Football', sportColor: '#22c55e', emoji: '⚽', time: '2 days ago', caption: `Sunday league season starts next week. Cannot wait. The lads are looking sharp in training.`, likes: 18, comments: 4, hasMedia: false, mediaBg: '' },
+  const sportOptions = [
+    { name: 'General', color: '#a855f7', emoji: '🏅' },
+    { name: 'Football', color: '#22c55e', emoji: '⚽' },
+    { name: 'Gym', color: '#a855f7', emoji: '🏋️' },
+    { name: 'Tennis', color: '#eab308', emoji: '🎾' },
+    { name: 'Running', color: '#06b6d4', emoji: '🏃' },
+    { name: 'Swimming', color: '#3b82f6', emoji: '🏊' },
+    { name: 'Basketball', color: '#f97316', emoji: '🏀' },
+    { name: 'Boxing', color: '#ef4444', emoji: '🥊' },
+    { name: 'Cycling', color: '#10b981', emoji: '🚴' },
+    { name: 'Golf', color: '#84cc16', emoji: '⛳' },
+    { name: 'Rugby', color: '#f59e0b', emoji: '🏉' },
+    { name: 'Cricket', color: '#06b6d4', emoji: '🏏' },
   ]
-  const posts = [...socialPosts, ...defaultPosts]
 
-  const toggleLike = (id: number) => {
-    setLikedPosts(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id])
+  useEffect(() => {
+    loadPosts()
+    loadProfile()
+  }, [])
+
+  const loadProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      if (data) setProfile(data)
+    }
   }
+
+  const loadPosts = async () => {
+    setLoading(true)
+    const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false })
+    if (data) setPosts(data)
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data: likes } = await supabase.from('post_likes').select('post_id').eq('user_id', session.user.id)
+      if (likes) setLikedPosts(likes.map((l: any) => l.post_id))
+    }
+    setLoading(false)
+  }
+
+  const loadComments = async (postId: string) => {
+    const { data } = await supabase.from('post_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true })
+    if (data) setComments(prev => ({ ...prev, [postId]: data }))
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handlePost = async () => {
+    if (!caption.trim()) return
+    setPosting(true)
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    let imageUrl = null
+
+    if (imageFile) {
+      const ext = imageFile.name.split('.').pop()
+      const fileName = `${session.user.id}-${Date.now()}.${ext}`
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('post-images').upload(fileName, imageFile, { upsert: true })
+      if (uploadData && !uploadError) {
+        const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(fileName)
+        imageUrl = urlData.publicUrl
+      }
+    }
+
+    const selectedSport = sportOptions.find(s => s.name === sport) || sportOptions[0]
+
+    const { data: newPost } = await supabase.from('posts').insert({
+      user_id: session.user.id,
+      username: profile?.username || 'Athlete',
+      caption,
+      sport,
+      sport_color: selectedSport.color,
+      emoji: selectedSport.emoji,
+      image_url: imageUrl,
+      likes: 0,
+    }).select().single()
+
+    setCaption('')
+    setSport('General')
+    setImageFile(null)
+    setImagePreview(null)
+    setShowCreate(false)
+    setPosting(false)
+    loadPosts()
+  }
+
+  const toggleLike = async (postId: string) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const isLiked = likedPosts.includes(postId)
+    const post = posts.find(p => p.id === postId)
+    if (!post) return
+
+    if (isLiked) {
+      await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', session.user.id)
+      const newLikes = Math.max(0, (post.likes || 1) - 1)
+      await supabase.from('posts').update({ likes: newLikes }).eq('id', postId)
+      setLikedPosts(prev => prev.filter(id => id !== postId))
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: newLikes } : p))
+    } else {
+      await supabase.from('post_likes').insert({ post_id: postId, user_id: session.user.id })
+      const newLikes = (post.likes || 0) + 1
+      await supabase.from('posts').update({ likes: newLikes }).eq('id', postId)
+      setLikedPosts(prev => [...prev, postId])
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: newLikes } : p))
+    }
+  }
+
+  const handleComment = async (postId: string) => {
+    if (!commentText.trim()) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const newCommentText = commentText
+    setCommentText('')
+
+    const { data: newComment, error } = await supabase.from('post_comments').insert({
+      post_id: postId,
+      user_id: session.user.id,
+      username: profile?.username || 'Athlete',
+      comment: newCommentText,
+    }).select().single()
+
+    if (newComment && !error) {
+      setComments(prev => ({ ...prev, [postId]: [...(prev[postId] || []), newComment] }))
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, comment_count: (p.comment_count || 0) + 1 } : p))
+    }
+  }
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000)
+    if (diff < 1) return 'Just now'
+    if (diff < 60) return `${diff}m ago`
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`
+    return `${Math.floor(diff / 1440)}d ago`
+  }
+
+  const allPosts = posts
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto', position: 'relative' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
+      {/* Create Post Modal */}
+      {showCreate && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 300, display: 'flex', alignItems: 'flex-end' }}>
+          <div style={{ background: '#0d0d1a', border: '1px solid #1e1e30', borderRadius: '20px 20px 0 0', padding: '24px', width: '100%', maxWidth: '430px', margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Create Post</h2>
+              <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', color: '#666', fontSize: '24px', cursor: 'pointer' }}>×</button>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #a855f7, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+                {sportOptions.find(s => s.name === sport)?.emoji || '🏅'}
+              </div>
+              <div>
+                <div style={{ fontWeight: '700', fontSize: '14px' }}>{profile?.username || 'Athlete'}</div>
+                <div style={{ color: '#666', fontSize: '12px' }}>Posting now</div>
+              </div>
+            </div>
+
+            <textarea
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              placeholder="What did you achieve today?"
+              rows={4}
+              style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '15px', resize: 'none', boxSizing: 'border-box', fontFamily: 'system-ui, sans-serif', marginBottom: '16px' }}
+            />
+
+            <label style={{ fontSize: '12px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '8px' }}>SPORT</label>
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
+              {sportOptions.map((s) => (
+                <button key={s.name} onClick={() => setSport(s.name)} style={{ background: sport === s.name ? `${s.color}20` : '#13131f', border: `1.5px solid ${sport === s.name ? s.color : '#1e1e30'}`, borderRadius: '20px', color: sport === s.name ? s.color : '#666', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>{s.emoji} {s.name}</button>
+              ))}
+            </div>
+
+            {imagePreview && (
+              <div style={{ position: 'relative', marginBottom: '16px' }}>
+                <img src={imagePreview} style={{ width: '100%', borderRadius: '12px', maxHeight: '200px', objectFit: 'cover' }} />
+                <button onClick={() => { setImageFile(null); setImagePreview(null) }} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', color: 'white', width: '28px', height: '28px', cursor: 'pointer', fontSize: '16px' }}>×</button>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <label style={{ flex: 1, background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: '#aaa', padding: '12px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', textAlign: 'center' }}>
+                📷 Photo
+                <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+              </label>
+              <button onClick={handlePost} disabled={posting || !caption.trim()} style={{ flex: 2, background: posting || !caption.trim() ? '#333' : 'linear-gradient(135deg, #a855f7, #06b6d4)', border: 'none', borderRadius: '12px', color: 'white', padding: '12px', fontSize: '15px', fontWeight: '800', cursor: posting || !caption.trim() ? 'not-allowed' : 'pointer' }}>
+                {posting ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ overflowY: 'auto', height: '100vh', padding: '50px 24px 90px', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
             <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 4px' }}>Social</h1>
-            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Share clips and celebrate wins</p>
+            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Share and celebrate wins</p>
           </div>
+          <button onClick={() => setShowCreate(true)} style={{ background: 'linear-gradient(135deg, #a855f7, #06b6d4)', border: 'none', borderRadius: '20px', color: 'white', padding: '10px 16px', fontSize: '13px', fontWeight: '800', cursor: 'pointer' }}>+ Post</button>
         </div>
+
+        {loading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {[1, 2, 3].map(i => <div key={i} style={{ background: '#13131f', borderRadius: '20px', height: '200px', opacity: 0.5 }} />)}
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {posts.map((post) => (
-            <div key={post.id} style={{ background: '#13131f', border: `1px solid ${post.sportColor}25`, borderRadius: '20px', overflow: 'hidden' }}>
-              {/* Post Header */}
-              <div style={{ padding: '16px 16px 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: `${post.sportColor}20`, border: `2px solid ${post.sportColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{post.emoji}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: '700', fontSize: '15px' }}>{post.user}</div>
-                  <div style={{ color: '#555', fontSize: '12px' }}>{post.time}</div>
-                </div>
-                <span style={{ background: `${post.sportColor}20`, border: `1px solid ${post.sportColor}40`, borderRadius: '20px', color: post.sportColor, fontSize: '11px', fontWeight: '700', padding: '4px 10px' }}>{post.sport}</span>
-              </div>
+          {allPosts.map((post: any) => {
+            const sportColor = post.sport_color || post.sportColor || '#a855f7'
+            const postEmoji = post.emoji || '🏅'
+            const postUser = post.username || post.user || 'Athlete'
+            const postTime = post.created_at ? timeAgo(post.created_at) : post.time || 'Just now'
+            const postId = post.id?.toString()
+            const isLiked = likedPosts.includes(postId)
+            const postComments = comments[postId] || []
+            const isExpanded = expandedComments === postId
 
-              {/* Caption */}
-              <div style={{ padding: '0 16px 12px' }}>
-                <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5', color: '#ddd' }}>{post.caption}</p>
-              </div>
-
-              {/* Media */}
-              {post.hasMedia && (
-                <div style={{ margin: '0 16px 12px', height: '180px', borderRadius: '14px', background: post.mediaBg, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #1e1e30' }}>
-                  <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: `2px solid ${post.sportColor}80`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: `18px solid ${post.sportColor}`, marginLeft: '3px' }} />
+            return (
+              <div key={postId} style={{ background: '#13131f', border: `1px solid ${sportColor}25`, borderRadius: '20px', overflow: 'hidden' }}>
+                <div style={{ padding: '16px 16px 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: `${sportColor}20`, border: `2px solid ${sportColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{postEmoji}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '700', fontSize: '15px' }}>{postUser}</div>
+                    <div style={{ color: '#555', fontSize: '12px' }}>{postTime}</div>
                   </div>
+                  <span style={{ background: `${sportColor}20`, border: `1px solid ${sportColor}40`, borderRadius: '20px', color: sportColor, fontSize: '11px', fontWeight: '700', padding: '4px 10px' }}>{post.sport}</span>
                 </div>
-              )}
 
-              {/* Actions */}
-              <div style={{ padding: '12px 16px 16px', display: 'flex', gap: '20px', alignItems: 'center', borderTop: '1px solid #1e1e3030' }}>
-                <button onClick={() => toggleLike(post.id)} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: likedPosts.includes(post.id) ? '#ef4444' : '#555', fontSize: '13px', fontWeight: '600', padding: 0 }}>
-                  <span style={{ fontSize: '18px' }}>{likedPosts.includes(post.id) ? '❤️' : '🤍'}</span>
-                  {post.likes + (likedPosts.includes(post.id) ? 1 : 0)}
-                </button>
-                <button style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#555', fontSize: '13px', fontWeight: '600', padding: 0 }}>
-                  <span style={{ fontSize: '18px' }}>💬</span>
-                  {post.comments}
-                </button>
-                <button style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#555', fontSize: '13px', fontWeight: '600', padding: 0, marginLeft: 'auto' }}>
-                  <span style={{ fontSize: '18px' }}>↗️</span>
-                  Share
-                </button>
+                <div style={{ padding: '0 16px 12px' }}>
+                  <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5', color: '#ddd' }}>{post.caption}</p>
+                </div>
+
+                {(post.image_url || post.hasMedia) && (
+                  <div style={{ margin: '0 16px 12px' }}>
+                    {post.image_url ? (
+                      <img src={post.image_url} style={{ width: '100%', borderRadius: '14px', maxHeight: '280px', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ height: '180px', borderRadius: '14px', background: post.mediaBg, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #1e1e30' }}>
+                        <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: `2px solid ${sportColor}80`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: `18px solid ${sportColor}`, marginLeft: '3px' }} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div style={{ padding: '12px 16px', display: 'flex', gap: '20px', alignItems: 'center', borderTop: '1px solid #1e1e3030' }}>
+                  <button onClick={() => post.user_id && toggleLike(postId)} onTouchStart={() => post.user_id && toggleLike(postId)} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: isLiked ? '#ef4444' : '#555', fontSize: '13px', fontWeight: '600', padding: 0 }}>
+                    <span style={{ fontSize: '18px' }}>{isLiked ? '❤️' : '🤍'}</span>
+                    {post.likes || 0}
+                  </button>
+                  <button onClick={() => {
+                    if (expandedComments === postId) {
+                      setExpandedComments(null)
+                    } else {
+                      setExpandedComments(postId)
+                      if (!comments[postId]) loadComments(postId)
+                    }
+                  }} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: isExpanded ? '#a855f7' : '#555', fontSize: '13px', fontWeight: '600', padding: 0 }}>
+                    <span style={{ fontSize: '18px' }}>💬</span>
+                    {post.comment_count || postComments.length || 0}
+                  </button>
+                  <button style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#555', fontSize: '13px', fontWeight: '600', padding: 0, marginLeft: 'auto' }}>
+                    <span style={{ fontSize: '18px' }}>↗️</span>
+                    Share
+                  </button>
+                </div>
+
+                {isExpanded && (
+                  <div style={{ padding: '0 16px 16px', borderTop: '1px solid #1e1e30' }}>
+                    {postComments.length === 0 && (
+                      <p style={{ color: '#444', fontSize: '13px', margin: '12px 0' }}>No comments yet. Be the first!</p>
+                    )}
+                    {postComments.map((c: any, i: number) => (
+                      <div key={i} style={{ padding: '10px 0', borderBottom: '1px solid #1e1e3020' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#a855f720', border: '1px solid #a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', flexShrink: 0 }}>👤</div>
+                          <div>
+                            <div style={{ fontWeight: '700', fontSize: '13px', color: '#a855f7' }}>{c.username}</div>
+                            <div style={{ fontSize: '13px', color: '#ddd', marginTop: '2px' }}>{c.comment}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                      <input
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleComment(postId)}
+                        placeholder="Add a comment..."
+                        style={{ flex: 1, background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '20px', color: 'white', padding: '10px 14px', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                      <button onClick={() => post.user_id && handleComment(postId)} style={{ background: 'linear-gradient(135deg, #a855f7, #06b6d4)', border: 'none', borderRadius: '20px', color: 'white', padding: '10px 16px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>Post</button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
-      </div>
-
-      {/* Create Post Button */}
-      <div style={{ position: 'fixed', bottom: '90px', right: '24px', zIndex: 200 }}>
-        <button style={{ background: 'linear-gradient(135deg, #a855f7, #06b6d4)', border: 'none', borderRadius: '28px', color: 'white', padding: '14px 22px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 0 24px #a855f760', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          ✚ Create Post
-        </button>
       </div>
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '430px', background: '#0d0d1a', borderTop: '1px solid #1e1e30', display: 'flex', justifyContent: 'space-around', padding: '12px 0 20px', zIndex: 100 }}>
         {[{ id: 'home', label: 'Home', emoji: '🏠' }, { id: 'sports', label: 'Sports', emoji: '🏅' }, { id: 'track', label: 'Track', emoji: '📈' }, { id: 'social', label: 'Social', emoji: '👥' }, { id: 'profile', label: 'Profile', emoji: '👤' }].map((item) => (
-          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
+          <button key={item.id} onClick={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} onTouchStart={() => { setActiveNavLocal(item.id); setActiveNav(item.id); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 12px' }}>
             <span style={{ fontSize: '20px' }}>{item.emoji}</span>
             <span style={{ fontSize: '10px', fontWeight: '600', color: activeNav === item.id ? '#a855f7' : '#555' }}>{item.label}</span>
           </button>
@@ -7155,8 +7407,7 @@ function FootballHub({ setActiveNav }: { setActiveNav: (nav: string) => void }) 
   )
 }
 
-function TrackPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
-  const [activeNav, setActiveNavLocal] = useState('track')
+function TrackPage({ setActiveNav, footballSessions, workoutLogs, tennisSessions, runningSessions, swimmingSessions, basketballSessions, boxingSessions, cyclingSessions, golfSessions, rugbySessions, cricketSessions }: any) {  const [activeNav, setActiveNavLocal] = useState('track')
 
   const recentSessions = [
     { sport: 'Gym', title: 'Pull Day', detail: '52 min | 14 sets | 3,100 kg', date: 'Mon 2 Jun', color: '#a855f7' },
@@ -7167,17 +7418,17 @@ function TrackPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   ]
 
   const sportCards = [
-    { id: 'football-hub', name: 'Football', emoji: '⚽', color: '#22c55e', sessions: 12 },
-    { id: 'gym-hub', name: 'Gym', emoji: '🏋️', color: '#a855f7', sessions: 24 },
-    { id: 'tennis-hub', name: 'Tennis', emoji: '🎾', color: '#eab308', sessions: 8 },
-    { id: 'running-hub', name: 'Running', emoji: '🏃', color: '#06b6d4', sessions: 15 },
-    { id: 'swimming-hub', name: 'Swimming', emoji: '🏊', color: '#3b82f6', sessions: 0 },
-    { id: 'basketball-hub', name: 'Basketball', emoji: '🏀', color: '#f97316', sessions: 0 },
-    { id: 'cycling-hub', name: 'Cycling', emoji: '🚴', color: '#10b981', sessions: 0 },
-{ id: 'golf-hub', name: 'Golf', emoji: '⛳', color: '#84cc16', sessions: 0 },
-{ id: 'boxing-hub', name: 'Boxing', emoji: '🥊', color: '#ef4444', sessions: 0 },
-{ id: 'rugby-hub', name: 'Rugby', emoji: '🏉', color: '#f59e0b', sessions: 0 },
-{ id: 'cricket-hub', name: 'Cricket', emoji: '🏏', color: '#06b6d4', sessions: 0 },
+    { id: 'football-hub', name: 'Football', emoji: '⚽', color: '#22c55e', sessions: footballSessions.length },
+    { id: 'gym-hub', name: 'Gym', emoji: '🏋️', color: '#a855f7', sessions: workoutLogs.length },
+    { id: 'tennis-hub', name: 'Tennis', emoji: '🎾', color: '#eab308', sessions: tennisSessions.length },
+    { id: 'running-hub', name: 'Running', emoji: '🏃', color: '#06b6d4', sessions: runningSessions.length },
+    { id: 'swimming-hub', name: 'Swimming', emoji: '🏊', color: '#3b82f6', sessions: swimmingSessions.length },
+    { id: 'basketball-hub', name: 'Basketball', emoji: '🏀', color: '#f97316', sessions: basketballSessions.length },
+    { id: 'boxing-hub', name: 'Boxing', emoji: '🥊', color: '#ef4444', sessions: boxingSessions.length },
+    { id: 'cycling-hub', name: 'Cycling', emoji: '🚴', color: '#10b981', sessions: cyclingSessions.length },
+    { id: 'golf-hub', name: 'Golf', emoji: '⛳', color: '#84cc16', sessions: golfSessions.length },
+    { id: 'rugby-hub', name: 'Rugby', emoji: '🏉', color: '#f59e0b', sessions: rugbySessions.length },
+    { id: 'cricket-hub', name: 'Cricket', emoji: '🏏', color: '#06b6d4', sessions: cricketSessions.length },
   ]
 
   return (
@@ -7260,7 +7511,12 @@ Cricket: 'cricket',
     try {
       const query = sportQueries[sport]
       const res = await fetch(
-        `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=10&apikey=09ee950ba2fbd68e806fb73fbb6ca94d`
+        `https://qzmcrjsgitpmntddttfk.supabase.co/functions/v1/fetch-news?q=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            'Authorization': 'Bearer sb_publishable_hY5Qxqx6sqFntkDTkr_OoA_HYwe_mDc'
+          }
+        }
       )
       const data = await res.json()
       setArticles(data.articles?.filter((a: any) => a.title && a.image) || [])
@@ -7382,6 +7638,12 @@ export default function Home() {
     return parseInt(localStorage.getItem('weeklyGoalTarget') || '5')
   })
   const [showGoalSetter, setShowGoalSetter] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
+
+const triggerConfetti = () => {
+  setShowConfetti(true)
+  setTimeout(() => setShowConfetti(false), 3000)
+}
   useEffect(() => {
     localStorage.setItem('weeklyGoalTarget', weeklyGoalTarget.toString())
   }, [weeklyGoalTarget])
@@ -7391,6 +7653,8 @@ const [selectedBoxingCategory, setSelectedBoxingCategory] = useState('')
 const [selectedCyclingCategory, setSelectedCyclingCategory] = useState('')
 const [user, setUser] = useState<any>(null)
 const [authLoading, setAuthLoading] = useState(true)
+const [footballSessions, setFootballSessions] = useState<any[]>([])
+const [workoutLogs, setWorkoutLogs] = useState<any[]>([])
 const [tennisSessions, setTennisSessions] = useState<any[]>(() => {
   if (typeof window === 'undefined') return []
   const saved = localStorage.getItem('tennisSessions')
@@ -7447,13 +7711,14 @@ useEffect(() => {
     if (!session) return
     const uid = session.user.id
 
-    const [golf, rugby, cricket, basketball, boxing, cycling] = await Promise.all([
+    const [golf, rugby, cricket, basketball, boxing, cycling, football] = await Promise.all([
       supabase.from('golf_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
       supabase.from('rugby_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
       supabase.from('cricket_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
       supabase.from('basketball_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
       supabase.from('boxing_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
       supabase.from('cycling_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      supabase.from('football_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
     ])
 
     if (golf.data) setGolfSessions(golf.data)
@@ -7470,6 +7735,7 @@ useEffect(() => {
       rideType: s.ride_type,
       avgSpeed: s.avg_speed,
     })))
+    if (football.data) setFootballSessions(football.data)
   }
   loadSessions()
 }, [user])
@@ -7550,8 +7816,17 @@ useEffect(() => {
 
 if (authLoading) {
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#a855f7', fontSize: '18px', fontWeight: '700' }}>Loading...</div>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ width: '90px', height: '90px', borderRadius: '24px', background: 'linear-gradient(135deg, #a855f7, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '44px', boxShadow: '0 0 40px #a855f750', marginBottom: '32px' }}>
+        🏅
+      </div>
+      <h1 style={{ fontSize: '32px', fontWeight: '900', color: 'white', margin: '0 0 8px', letterSpacing: '-1px' }}>SportSync</h1>
+      <p style={{ color: '#555', fontSize: '14px', margin: '0 0 48px', fontWeight: '500' }}>Track every sport. Own every session.</p>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a855f7', opacity: 0.3 + i * 0.3 }} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -7605,7 +7880,7 @@ if (activeNav === 'sports') {
   return <SportsPage setActiveNav={setActiveNav} />
 }
 if (activeNav === 'track') {
-  return <TrackPage setActiveNav={setActiveNav} />
+  return <TrackPage setActiveNav={setActiveNav} footballSessions={footballSessions} workoutLogs={workoutLogs} tennisSessions={tennisSessions} runningSessions={runningSessions} swimmingSessions={swimmingSessions} basketballSessions={basketballSessions} boxingSessions={boxingSessions} cyclingSessions={cyclingSessions} golfSessions={golfSessions} rugbySessions={rugbySessions} cricketSessions={cricketSessions} />
 }
 if (activeNav === 'football-hub') {
   return <FootballHub setActiveNav={setActiveNav} />
@@ -7928,12 +8203,11 @@ if (activeNav === 'gym-stats') {
   return <GymStats setActiveNav={setActiveNav} />
 }
 if (activeNav === 'social') {
-  return <SocialPage setActiveNav={setActiveNav} socialPosts={socialPosts} />
+  return <SocialPage setActiveNav={setActiveNav} socialPosts={socialPosts} user={user} />
 }
 if (activeNav === 'profile') {
   return <ProfilePage setActiveNav={setActiveNav} tennisSessions={tennisSessions} runningSessions={runningSessions} swimmingSessions={swimmingSessions} basketballSessions={basketballSessions} boxingSessions={boxingSessions} cyclingSessions={cyclingSessions} golfSessions={golfSessions} rugbySessions={rugbySessions} cricketSessions={cricketSessions} />
 }
-date: new Date().toISOString().split('T')[0]
 
 const todayStr = new Date().toISOString().split('T')[0]
 
@@ -7976,6 +8250,7 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
         overflowX: 'hidden',
       }}
     >
+      
       {/* Background gradient blobs */}
       <div
         style={{
@@ -8021,20 +8296,22 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
               SportSync
             </h1>
             <div
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #a855f7, #06b6d4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px',
-                cursor: 'pointer',
-              }}
-            >
-              👤
-            </div>
+  onClick={() => setActiveNav('profile')}
+  onTouchStart={() => setActiveNav('profile')}
+  style={{
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #a855f7, #06b6d4)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '18px',
+    cursor: 'pointer',
+  }}
+>
+  👤
+</div>
           </div>
         </div>
 
@@ -8111,6 +8388,41 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
             }}
           >
             This Week
+            {(() => {
+  const allAchievements = [
+    { title: 'First Tennis Session', emoji: '🎾', color: '#eab308', earned: tennisSessions.length >= 1 },
+    { title: 'First Run', emoji: '🏃', color: '#06b6d4', earned: runningSessions.length >= 1 },
+    { title: 'First Swim', emoji: '🏊', color: '#3b82f6', earned: swimmingSessions.length >= 1 },
+    { title: 'First Basketball Session', emoji: '🏀', color: '#f97316', earned: basketballSessions.length >= 1 },
+    { title: 'First Boxing Session', emoji: '🥊', color: '#ef4444', earned: boxingSessions.length >= 1 },
+    { title: 'First Ride', emoji: '🚴', color: '#10b981', earned: cyclingSessions.length >= 1 },
+    { title: 'First Round of Golf', emoji: '⛳', color: '#84cc16', earned: golfSessions.filter((s: any) => s.session_type === 'Round').length >= 1 },
+    { title: 'First Rugby Session', emoji: '🏉', color: '#f59e0b', earned: rugbySessions.length >= 1 },
+    { title: 'First Cricket Session', emoji: '🏏', color: '#06b6d4', earned: cricketSessions.length >= 1 },
+    { title: 'Multi-Sport Athlete', emoji: '🏅', color: '#22c55e', earned: [tennisSessions, runningSessions, swimmingSessions, basketballSessions, boxingSessions, cyclingSessions, golfSessions, rugbySessions, cricketSessions].filter(s => s.length > 0).length >= 3 },
+    { title: '50km Runner', emoji: '🛣️', color: '#06b6d4', earned: runningSessions.reduce((sum: number, r: any) => sum + (r.distance || 0), 0) >= 50 },
+    { title: '25 Sessions', emoji: '🔥', color: '#ef4444', earned: (tennisSessions.length + runningSessions.length + swimmingSessions.length + basketballSessions.length + boxingSessions.length + cyclingSessions.length + golfSessions.length + rugbySessions.length + cricketSessions.length + footballSessions.length) >= 25 },
+    { title: 'Try Scorer', emoji: '🏆', color: '#22c55e', earned: rugbySessions.some((s: any) => (s.tries || 0) >= 1) },
+    { title: 'Half Century', emoji: '🏏', color: '#22c55e', earned: cricketSessions.some((s: any) => (s.runs || 0) >= 50) },
+    { title: 'Century Rider', emoji: '💯', color: '#06b6d4', earned: cyclingSessions.some((s: any) => (s.distance || 0) >= 100) },
+    { title: 'Sub-90 Round', emoji: '🏌️', color: '#84cc16', earned: golfSessions.some((s: any) => s.session_type === 'Round' && (s.score || 999) < 90) },
+  ]
+  const latest = allAchievements.filter(a => a.earned).pop()
+  if (!latest) return null
+  return (
+    <div style={{ margin: '20px 0 0' }}>
+      <h2 style={{ fontSize: '16px', fontWeight: '800', margin: '0 0 12px' }}>Latest Achievement</h2>
+      <div onClick={() => setActiveNav('profile')} onTouchStart={() => setActiveNav('profile')} style={{ background: '#13131f', border: `1px solid ${latest.color}40`, borderLeft: `4px solid ${latest.color}`, borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', boxShadow: `0 0 20px ${latest.color}20` }}>
+        <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${latest.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', flexShrink: 0 }}>{latest.emoji}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: '800', fontSize: '15px' }}>{latest.title}</div>
+          <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>Tap to view all achievements</div>
+        </div>
+        <div style={{ color: latest.color, fontSize: '20px' }}>›</div>
+      </div>
+    </div>
+  )
+})()}
           </h2>
           <div
             style={{
@@ -8173,6 +8485,8 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
             {suggestedWorkouts.map((workout) => (
               <div
                 key={workout.title}
+                onClick={() => setActiveNav(workout.nav)}
+                onTouchStart={() => setActiveNav(workout.nav)}
                 style={{
                   background: '#13131f',
                   border: '1px solid #1e1e30',
