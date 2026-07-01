@@ -30,9 +30,14 @@ const suggestedWorkouts = [
 ];
 
 function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
-  const userPosition: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward' = 'Forward'
+  const [userPosition, setUserPosition] = useState<'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'>('Forward')
   const [sessionType, setSessionType] = useState('')
   const [matchType, setMatchType] = useState('')
+  const [opponent, setOpponent] = useState('')
+const [homeAway, setHomeAway] = useState('')
+const [result, setResult] = useState('')
+const [yourScore, setYourScore] = useState('')
+const [opponentScore, setOpponentScore] = useState('')
   const [trainingContext, setTrainingContext] = useState('')
   const [duration, setDuration] = useState('')
   const [goals, setGoals] = useState('')
@@ -42,7 +47,12 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   const [tackles, setTackles] = useState('')
   const [yellowCards, setYellowCards] = useState('0')
   const [redCards, setRedCards] = useState('0')
+  const [shots, setShots] = useState('0')
+const [shotsOnTarget, setShotsOnTarget] = useState('0')
+const [keyPasses, setKeyPasses] = useState('0')
+const [passAccuracy, setPassAccuracy] = useState('')
   const [notes, setNotes] = useState('')
+  const [rating, setRating] = useState(7)
   const [drillInput, setDrillInput] = useState('')
   const [drillCount, setDrillCount] = useState('')
   const [drills, setDrills] = useState<{name: string, count: string}[]>([])
@@ -62,8 +72,14 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
       await supabase.from('football_sessions').insert({
         user_id: session.user.id,
         session_type: sessionType,
+        position: userPosition,
         match_type: matchType,
         training_context: trainingContext,
+        opponent,
+home_away: homeAway,
+result,
+your_score: parseInt(yourScore) || 0,
+opponent_score: parseInt(opponentScore) || 0,
         duration: parseInt(duration) || 0,
         goals: parseInt(goals) || 0,
         assists: parseInt(assists) || 0,
@@ -72,11 +88,33 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
         tackles: parseInt(tackles) || 0,
         yellow_cards: parseInt(yellowCards) || 0,
         red_cards: parseInt(redCards) || 0,
+        rating,
+        shots: parseInt(shots) || 0,
+shots_on_target: parseInt(shotsOnTarget) || 0,
+key_passes: parseInt(keyPasses) || 0,
+pass_accuracy: parseInt(passAccuracy) || 0,
         notes
       })
     }
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const suggestedRating = Math.min(10, Math.max(1,
+    6 +
+    ((parseInt(goals) || 0) * 0.9) +
+    ((parseInt(assists) || 0) * 0.6) +
+    ((parseInt(shotsOnTarget) || 0) * 0.15) +
+    ((parseInt(keyPasses) || 0) * 0.2) +
+    ((parseInt(passAccuracy) || 0) >= 85 ? 0.5 : 0) +
+    ((parseInt(tackles) || 0) * 0.15) +
+    ((parseInt(saves) || 0) * 0.25) -
+    ((parseInt(yellowCards) || 0) * 0.4) -
+    ((parseInt(redCards) || 0) * 1.5)
+  )).toFixed(1)
+
+  const applySuggestedRating = () => {
+    setRating(Number(suggestedRating))
   }
 
   return (
@@ -121,6 +159,85 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
           </div>
         )}
 
+
+        {/* Match Overview */}
+{sessionType === 'Match' && (
+  <div style={{
+    background: 'linear-gradient(135deg, #13131f, #10101a)',
+    border: '1px solid #22c55e25',
+    borderLeft: '4px solid #22c55e',
+    borderRadius: '20px',
+    padding: '18px',
+    marginBottom: '22px'
+  }}>
+    <div style={{ color: '#22c55e', fontSize: '12px', fontWeight: '900', marginBottom: '14px' }}>
+      MATCH OVERVIEW
+    </div>
+
+    <input value={opponent} onChange={(e) => setOpponent(e.target.value)} placeholder="Opponent / team name" style={{ width: '100%', background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box' }} />
+
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+      {['Home', 'Away', 'Neutral'].map((type) => (
+        <button key={type} onClick={() => setHomeAway(type)} style={{ background: homeAway === type ? '#22c55e20' : '#0a0a0f', border: `1.5px solid ${homeAway === type ? '#22c55e' : '#1e1e30'}`, borderRadius: '20px', color: homeAway === type ? '#22c55e' : '#666', padding: '7px 13px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>{type}</button>
+      ))}
+    </div>
+
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+      <input value={yourScore} onChange={(e) => {
+  const v = e.target.value
+  setYourScore(v)
+
+  if (v !== '' && opponentScore !== '') {
+    const ys = parseInt(v) || 0
+    const os = parseInt(opponentScore) || 0
+    setResult(ys > os ? 'Win' : ys < os ? 'Loss' : 'Draw')
+  }
+}} placeholder="Your score" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '14px', boxSizing: 'border-box' }} />
+      <input value={opponentScore} onChange={(e) => {
+  const v = e.target.value
+  setOpponentScore(v)
+
+  if (yourScore !== '' && v !== '') {
+    const ys = parseInt(yourScore) || 0
+    const os = parseInt(v) || 0
+    setResult(ys > os ? 'Win' : ys < os ? 'Loss' : 'Draw')
+  }
+}} placeholder="Their score" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '12px', color: 'white', padding: '14px', fontSize: '14px', boxSizing: 'border-box' }} />
+    </div>
+
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      {['Win', 'Draw', 'Loss'].map((r) => (
+        <button key={r} onClick={() => setResult(r)} style={{ background: result === r ? '#22c55e20' : '#0a0a0f', border: `1.5px solid ${result === r ? '#22c55e' : '#1e1e30'}`, borderRadius: '20px', color: result === r ? '#22c55e' : '#666', padding: '7px 13px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>{r}</button>
+      ))}
+    </div>
+  </div>
+)}
+        {/* Position */}
+{sessionType !== '' && (
+  <div style={{ marginBottom: '20px' }}>
+    <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '10px' }}>POSITION</label>
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      {['Goalkeeper', 'Defender', 'Midfielder', 'Forward'].map((pos: any) => (
+        <button
+          key={pos}
+          onClick={() => setUserPosition(pos)}
+          style={{
+            background: userPosition === pos ? '#22c55e20' : '#13131f',
+            border: `1.5px solid ${userPosition === pos ? '#22c55e' : '#1e1e30'}`,
+            borderRadius: '20px',
+            color: userPosition === pos ? '#22c55e' : '#666',
+            padding: '7px 13px',
+            fontSize: '12px',
+            fontWeight: '700',
+            cursor: 'pointer'
+          }}
+        >
+          {pos}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
         {/* Duration — always shown once type selected */}
         {sessionType !== '' && (
           <div style={{ marginBottom: '20px' }}>
@@ -129,51 +246,98 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
           </div>
         )}
 
-        {/* Match Stats */}
-        {sessionType === 'Match' && (
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ fontSize: '13px', color: '#aaa', fontWeight: '600', display: 'block', marginBottom: '12px' }}>MATCH STATS — {userPosition.toUpperCase()}</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-              {userPosition === 'Goalkeeper' && (
-                <div>
-                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '6px' }}>SAVES</label>
-                  <input value={saves} onChange={(e) => setSaves(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '16px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }} />
-                </div>
-              )}
-              {userPosition === 'Defender' && (<>
-                <div>
-                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '6px' }}>BLOCKS</label>
-                  <input value={blocks} onChange={(e) => setBlocks(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '16px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '6px' }}>TACKLES</label>
-                  <input value={tackles} onChange={(e) => setTackles(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '16px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }} />
-                </div>
-              </>)}
-              {(userPosition === 'Forward' || userPosition === 'Midfielder') && (<>
-                <div>
-                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '6px' }}>GOALS</label>
-                  <input value={goals} onChange={(e) => setGoals(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '16px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '6px' }}>ASSISTS</label>
-                  <input value={assists} onChange={(e) => setAssists(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '16px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }} />
-                </div>
-              </>)}
-            </div>
-            {/* Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div>
-                <label style={{ fontSize: '11px', color: '#eab308', display: 'block', marginBottom: '6px' }}>🟨 YELLOW CARDS</label>
-                <input value={yellowCards} onChange={(e) => setYellowCards(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #eab30840', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '16px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '11px', color: '#ef4444', display: 'block', marginBottom: '6px' }}>🟥 RED CARDS</label>
-                <input value={redCards} onChange={(e) => setRedCards(e.target.value)} placeholder="0" style={{ width: '100%', background: '#13131f', border: '1.5px solid #ef444440', borderRadius: '10px', color: 'white', padding: '12px', fontSize: '16px', fontWeight: '700', textAlign: 'center', boxSizing: 'border-box' }} />
-              </div>
-            </div>
+        {/* Match Performance Report */}
+{/* Match Performance Report */}
+{sessionType === 'Match' && (
+  <div style={{
+    background: 'linear-gradient(135deg, #13131f, #10101a)',
+    border: '1px solid #22c55e25',
+    borderLeft: '4px solid #22c55e',
+    borderRadius: '20px',
+    padding: '18px',
+    marginBottom: '22px',
+    boxShadow: '0 0 25px rgba(34,197,94,0.08)'
+  }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div>
+        <div style={{ color: '#22c55e', fontSize: '12px', fontWeight: '900', letterSpacing: '0.8px' }}>
+          PERFORMANCE
+        </div>
+        <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>
+          Tap + or − to update your match stats
+        </div>
+      </div>
+      <div style={{ fontSize: '26px' }}>📊</div>
+    </div>
+
+    {[
+      ...(userPosition === 'Goalkeeper' ? [
+        { label: 'Saves', emoji: '🧤', value: saves, setter: setSaves }
+      ] : []),
+
+      ...(userPosition === 'Defender' ? [
+        { label: 'Blocks', emoji: '🧱', value: blocks, setter: setBlocks },
+        { label: 'Tackles', emoji: '🛡️', value: tackles, setter: setTackles }
+      ] : []),
+
+      ...((userPosition === 'Forward' || userPosition === 'Midfielder') ? [
+        { label: 'Goals', emoji: '⚽', value: goals, setter: setGoals },
+        { label: 'Shots', emoji: '🎯', value: shots, setter: setShots },
+{ label: 'On Target', emoji: '🥅', value: shotsOnTarget, setter: setShotsOnTarget },
+        { label: 'Assists', emoji: '🅰️', value: assists, setter: setAssists }
+      ] : []),
+
+      { label: 'Yellow Cards', emoji: '🟨', value: yellowCards, setter: setYellowCards },
+      { label: 'Red Cards', emoji: '🟥', value: redCards, setter: setRedCards }
+    ].map((stat: any) => (
+      <div key={stat.label} style={{
+        background: '#0a0a0f',
+        border: '1px solid #1e1e30',
+        borderRadius: '16px',
+        padding: '14px',
+        marginBottom: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div>
+          <div style={{ fontSize: '14px', fontWeight: '900' }}>{stat.emoji} {stat.label}</div>
+          <div style={{ color: '#666', fontSize: '11px', marginTop: '3px' }}>Match stat</div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={() => stat.setter(String(Math.max(0, (parseInt(stat.value) || 0) - 1)))} style={{
+            width: '34px',
+            height: '34px',
+            borderRadius: '50%',
+            border: '1px solid #ef444450',
+            background: '#ef444415',
+            color: '#ef4444',
+            fontSize: '20px',
+            fontWeight: '900',
+            cursor: 'pointer'
+          }}>−</button>
+
+          <div style={{ minWidth: '28px', textAlign: 'center', color: '#22c55e', fontSize: '22px', fontWeight: '900' }}>
+            {stat.value || 0}
           </div>
-        )}
+
+          <button onClick={() => stat.setter(String((parseInt(stat.value) || 0) + 1))} style={{
+            width: '34px',
+            height: '34px',
+            borderRadius: '50%',
+            border: '1px solid #22c55e50',
+            background: '#22c55e15',
+            color: '#22c55e',
+            fontSize: '20px',
+            fontWeight: '900',
+            cursor: 'pointer'
+          }}>+</button>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
 
 {(sessionType === 'Training' || sessionType === 'Drill') && (
   <div style={{ marginBottom: '20px' }}>
@@ -211,6 +375,152 @@ function LogSession({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   </div>
 )}
 
+{/* Passing */}
+{sessionType === 'Match' && (
+  <div style={{
+    background: '#13131f',
+    border: '1px solid #1e1e30',
+    borderRadius: '18px',
+    padding: '18px',
+    marginBottom: '20px'
+  }}>
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '14px'
+    }}>
+      <div>
+        <div style={{
+          fontWeight: '900',
+          fontSize: '14px'
+        }}>
+          🎯 Passing Accuracy
+        </div>
+
+        <div style={{
+          color: '#666',
+          fontSize: '11px',
+          marginTop: '2px'
+        }}>
+          Estimate your passing %
+        </div>
+      </div>
+
+      <div style={{
+        color: '#22c55e',
+        fontWeight: '900',
+        fontSize: '26px'
+      }}>
+        {passAccuracy || 0}%
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min="0"
+      max="100"
+      step="1"
+      value={passAccuracy || 0}
+      onChange={(e)=>setPassAccuracy(e.target.value)}
+      style={{
+        width:'100%'
+      }}
+    />
+  </div>
+)}
+
+{/* Smart Match Report */}
+{sessionType === 'Match' && (
+  <div style={{
+    background: 'linear-gradient(135deg, #13131f, #10101a)',
+    border: '1px solid #22c55e25',
+    borderLeft: '4px solid #22c55e',
+    borderRadius: '20px',
+    padding: '18px',
+    marginBottom: '20px'
+  }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+      <div>
+        <div style={{ color: '#22c55e', fontSize: '12px', fontWeight: '900' }}>SMART MATCH REPORT</div>
+        <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>
+          {opponent ? `vs ${opponent}` : 'Add opponent'} · {homeAway || 'Home/Away'} · {result || 'Result'}
+        </div>
+      </div>
+
+      <div style={{ textAlign: 'right' }}>
+        <div style={{ color: '#22c55e', fontSize: '28px', fontWeight: '900' }}>{suggestedRating}</div>
+        <div style={{ color: '#666', fontSize: '10px', fontWeight: '700' }}>Suggested</div>
+      </div>
+    </div>
+
+    <div style={{ color: '#aaa', fontSize: '13px', lineHeight: '1.5', marginBottom: '14px' }}>
+      {yourScore !== '' && opponentScore !== ''
+        ? `${yourScore}-${opponentScore} ${result || ''} · ${goals || 0} goals · ${assists || 0} assists · ${passAccuracy || 0}% passing`
+        : 'Enter the score and stats to generate a better match report.'}
+    </div>
+
+    <button onClick={applySuggestedRating} style={{
+      width: '100%',
+      background: '#22c55e15',
+      border: '1.5px solid #22c55e40',
+      borderRadius: '12px',
+      color: '#22c55e',
+      padding: '12px',
+      fontSize: '13px',
+      fontWeight: '900',
+      cursor: 'pointer'
+    }}>
+      Use Suggested Rating
+    </button>
+  </div>
+)}
+{/* Rating */}
+{sessionType === 'Match' && (
+  <div style={{ marginBottom: '24px' }}>
+    <label style={{
+      fontSize: '13px',
+      color: '#aaa',
+      fontWeight: '600',
+      display: 'block',
+      marginBottom: '10px'
+    }}>
+      MATCH RATING
+    </label>
+
+    <div style={{
+      background: '#13131f',
+      border: '1.5px solid #1e1e30',
+      borderRadius: '14px',
+      padding: '18px'
+    }}>
+      <div style={{
+        textAlign: 'center',
+        fontSize: '36px',
+        fontWeight: '900',
+        color:
+          rating >= 8 ? '#22c55e'
+          : rating >= 6 ? '#f59e0b'
+          : '#ef4444',
+        marginBottom: '14px'
+      }}>
+        {rating.toFixed(1)}
+      </div>
+
+      <input
+        type="range"
+        min="1"
+        max="10"
+        step="0.1"
+        value={rating}
+        onChange={(e) => setRating(Number(e.target.value))}
+        style={{
+          width: '100%'
+        }}
+      />
+    </div>
+  </div>
+)}
         {/* Notes */}
         {sessionType !== '' && (
           <div style={{ marginBottom: '28px' }}>
@@ -743,7 +1053,16 @@ useEffect(() => {
             {showResult === fixture.id && (
               <div style={{ borderTop: '1px solid #1e1e30', marginTop: '14px', paddingTop: '14px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-                  <input value={yourScore} onChange={(e) => setYourScore(e.target.value)} placeholder="Your score" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', boxSizing: 'border-box' }} />
+                  <input value={yourScore} onChange={(e) => {
+  const v = e.target.value
+  setYourScore(v)
+
+  if (v !== '' && opponentScore !== '') {
+    const ys = parseInt(v) || 0
+    const os = parseInt(opponentScore) || 0
+    setResult(ys > os ? 'Win' : ys < os ? 'Loss' : 'Draw')
+  }
+}} placeholder="Your score" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', boxSizing: 'border-box' }} />
                   <input value={theirScore} onChange={(e) => setTheirScore(e.target.value)} placeholder="Their score" style={{ background: '#0a0a0f', border: '1.5px solid #1e1e30', borderRadius: '10px', color: 'white', padding: '12px', boxSizing: 'border-box' }} />
                 </div>
 
@@ -1193,6 +1512,154 @@ const sa = parseInt(scoreAgainst.trim()) || 0
           )}
         </div>
 
+        {/* Personal Bests */}
+<div style={{
+  background: '#13131f',
+  border: '1px solid #f59e0b25',
+  borderLeft: '4px solid #f59e0b',
+  borderRadius: '20px',
+  padding: '18px',
+  marginBottom: '22px'
+}}>
+  <div style={{ color: '#f59e0b', fontSize: '12px', fontWeight: '900', marginBottom: '14px' }}>
+    PERSONAL BESTS
+  </div>
+
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+    {[
+      { label: 'Best Rating', value: bestRating.toFixed ? bestRating.toFixed(1) : bestRating, color: '#eab308' },
+      { label: 'Most Goals', value: mostGoals, color: '#22c55e' },
+      { label: 'Most Assists', value: mostAssists, color: '#06b6d4' },
+      { label: 'Most Shots', value: mostShots, color: '#ef4444' },
+      { label: 'Best Passing', value: `${bestPassing}%`, color: '#a855f7' },
+      { label: 'Key Passes', value: mostKeyPasses, color: '#f59e0b' },
+    ].map((stat) => (
+      <div key={stat.label} style={{
+        background: '#0a0a0f',
+        border: `1px solid ${stat.color}25`,
+        borderRadius: '14px',
+        padding: '14px',
+        textAlign: 'center'
+      }}>
+        <div style={{ color: stat.color, fontSize: '20px', fontWeight: '900' }}>{stat.value}</div>
+        <div style={{ color: '#666', fontSize: '10px', fontWeight: '800', marginTop: '4px' }}>{stat.label}</div>
+      </div>
+    ))}
+  </div>
+</div>
+        
+        {/* Position Breakdown */}
+<div style={{
+  background: '#13131f',
+  border: '1px solid #06b6d425',
+  borderLeft: '4px solid #06b6d4',
+  borderRadius: '20px',
+  padding: '18px',
+  marginBottom: '22px'
+}}>
+  <div style={{ color: '#06b6d4', fontSize: '12px', fontWeight: '900', marginBottom: '14px' }}>
+    POSITION BREAKDOWN
+  </div>
+
+  {positionStats.length === 0 ? (
+    <div style={{ color: '#666', fontSize: '13px' }}>Log matches in different positions to see this.</div>
+  ) : (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {positionStats.map((p: any) => (
+        <div key={p.pos} style={{
+          background: '#0a0a0f',
+          border: '1px solid #1e1e30',
+          borderRadius: '14px',
+          padding: '14px'
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: '900', marginBottom: '10px' }}>{p.pos}</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
+            {[
+              { label: 'Games', value: p.matches, color: '#06b6d4' },
+              { label: 'G', value: p.goals, color: '#22c55e' },
+              { label: 'A', value: p.assists, color: '#a855f7' },
+              { label: 'Avg', value: p.rating, color: '#eab308' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#13131f', borderRadius: '10px', padding: '9px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '15px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '9px', fontWeight: '800', marginTop: '3px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+        {/* Recent Match Reports */}
+<div style={{
+  background: '#13131f',
+  border: '1px solid #22c55e25',
+  borderLeft: '4px solid #22c55e',
+  borderRadius: '20px',
+  padding: '18px',
+  marginBottom: '22px'
+}}>
+  <div style={{ color: '#22c55e', fontSize: '12px', fontWeight: '900', marginBottom: '14px' }}>
+    RECENT MATCH REPORTS
+  </div>
+
+  {recentMatches.length === 0 ? (
+    <div style={{ color: '#666', fontSize: '13px' }}>
+      Log a match to see your latest reports here.
+    </div>
+  ) : (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {recentMatches.map((match: any, i: number) => (
+        <div key={i} style={{
+          background: '#0a0a0f',
+          border: '1px solid #1e1e30',
+          borderRadius: '14px',
+          padding: '14px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: '900' }}>
+                {match.opponent ? `vs ${match.opponent}` : 'Match'}
+              </div>
+              <div style={{ color: '#666', fontSize: '11px', marginTop: '3px' }}>
+                {match.home_away || 'Venue'} · {match.position || 'Position'}
+              </div>
+            </div>
+
+            <div style={{
+              background: match.result === 'Win' ? '#22c55e20' : match.result === 'Loss' ? '#ef444420' : '#f59e0b20',
+              border: `1px solid ${match.result === 'Win' ? '#22c55e' : match.result === 'Loss' ? '#ef4444' : '#f59e0b'}40`,
+              color: match.result === 'Win' ? '#22c55e' : match.result === 'Loss' ? '#ef4444' : '#f59e0b',
+              borderRadius: '20px',
+              padding: '5px 9px',
+              fontSize: '10px',
+              fontWeight: '900'
+            }}>
+              {match.result || 'Result'}
+            </div>
+          </div>
+
+          <div style={{ marginTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            {[
+              { label: 'Score', value: `${match.your_score || 0}-${match.opponent_score || 0}`, color: '#22c55e' },
+              { label: 'Rating', value: match.rating ? match.rating.toFixed?.(1) || match.rating : '0.0', color: '#eab308' },
+              { label: 'G/A', value: `${match.goals || 0}/${match.assists || 0}`, color: '#06b6d4' },
+            ].map((stat) => (
+              <div key={stat.label} style={{ background: '#13131f', borderRadius: '10px', padding: '9px', textAlign: 'center' }}>
+                <div style={{ color: stat.color, fontSize: '15px', fontWeight: '900' }}>{stat.value}</div>
+                <div style={{ color: '#555', fontSize: '9px', fontWeight: '800', marginTop: '3px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+        
         {/* Tabs */}
         <div style={{ display: 'flex', background: '#13131f', borderRadius: '12px', padding: '4px', marginBottom: '20px' }}>
           {(['upcoming', 'results'] as const).map((t) => (
@@ -2449,6 +2916,11 @@ function RunningStats({ setActiveNav, runningSessions, runningPRs }: any) {
 
   const favouriteRun = Object.keys(runTypeCounts).sort((a, b) => runTypeCounts[b] - runTypeCounts[a])[0] || 'None yet'
 
+  const handleDeleteSession = async (sessionId: any) => {
+    setRunningSessions(runningSessions.filter((r: any) => r.id !== sessionId))
+    await supabase.from('running_sessions').delete().eq('id', sessionId)
+  }
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ overflowY: 'auto', height: '100vh', WebkitOverflowScrolling: 'touch', padding: '50px 24px 90px' }}>
@@ -2491,13 +2963,16 @@ function RunningStats({ setActiveNav, runningSessions, runningPRs }: any) {
             No runs logged yet.
           </div>
         ) : (
-          runningSessions.slice(0, 5).map((run: any) => (
-            <div key={run.id} style={{ background: '#13131f', border: '1px solid #1e1e30', borderLeft: '4px solid #06b6d4', borderRadius: '14px', padding: '14px 18px', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <strong>{run.runType}</strong>
-                <span style={{ color: '#06b6d4', fontWeight: '800' }}>{run.distance} km</span>
+          runningSessions.slice(0, 8).map((run: any) => (
+            <div key={run.id} style={{ background: '#13131f', border: '1px solid #1e1e30', borderLeft: '4px solid #06b6d4', borderRadius: '14px', padding: '14px 18px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <strong>{run.runType}</strong>
+                  <span style={{ color: '#06b6d4', fontWeight: '800' }}>{run.distance} km</span>
+                </div>
+                <div style={{ color: '#666', fontSize: '12px' }}>{run.time} min · {run.pace} · {run.surface || 'No surface'}</div>
               </div>
-              <div style={{ color: '#666', fontSize: '12px' }}>{run.time} min · {run.pace} · {run.surface || 'No surface'}</div>
+              <button onClick={() => handleDeleteSession(run.id)} style={{ background: '#ef444415', border: '1px solid #ef444440', borderRadius: '8px', color: '#ef4444', padding: '8px 10px', fontSize: '14px', cursor: 'pointer', flexShrink: 0 }}>🗑️</button>
             </div>
           ))
         )}
@@ -2746,7 +3221,7 @@ function SuggestedRunningSessions({ setActiveNav }: any) {
     </div>
   )
 }
-function TennisStats({ setActiveNav, tennisSessions, tennisResults }: { setActiveNav: (nav: string) => void, tennisSessions: any[], tennisResults: any[] }) {
+function TennisStats({ setActiveNav, tennisSessions, setTennisSessions, tennisResults }: { setActiveNav: (nav: string) => void, tennisSessions: any[], setTennisSessions: any, tennisResults: any[] }) {
   const totalSessions = tennisSessions.length
   const totalMinutes = tennisSessions.reduce((sum, s) => sum + (s.duration || 0), 0)
   const totalServes = tennisSessions.reduce((sum, s) => sum + (s.serves || 0), 0)
@@ -2768,6 +3243,11 @@ function TennisStats({ setActiveNav, tennisSessions, tennisResults }: { setActiv
   }, {})
 
   const favouriteFocus = Object.keys(focusCounts).sort((a, b) => focusCounts[b] - focusCounts[a])[0] || 'None yet'
+
+  const handleDeleteSession = async (sessionId: any) => {
+    setTennisSessions(tennisSessions.filter((s: any) => s.id !== sessionId))
+    await supabase.from('tennis_sessions').delete().eq('id', sessionId)
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
@@ -2827,6 +3307,23 @@ function TennisStats({ setActiveNav, tennisSessions, tennisResults }: { setActiv
             Keep logging sessions and matches here. Your stats will update automatically from the data you enter.
           </p>
         </div>
+
+        <h2 style={{ fontSize: '16px', fontWeight: '800', margin: '24px 0 12px' }}>Recent Sessions</h2>
+        {tennisSessions.length === 0 ? (
+          <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '18px', color: '#666' }}>
+            No sessions logged yet.
+          </div>
+        ) : (
+          tennisSessions.slice(0, 8).map((s: any) => (
+            <div key={s.id} style={{ background: '#13131f', border: '1px solid #eab30825', borderLeft: '4px solid #eab308', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '800', fontSize: '14px' }}>{s.sessionType || 'Tennis Session'}{s.focus ? ` · ${s.focus}` : ''}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '4px' }}>{s.duration || 0} mins · {s.serves || 0} serves · {s.date || 'No date'}</div>
+              </div>
+              <button onClick={() => handleDeleteSession(s.id)} style={{ background: '#ef444415', border: '1px solid #ef444440', borderRadius: '8px', color: '#ef4444', padding: '8px 10px', fontSize: '14px', cursor: 'pointer', flexShrink: 0 }}>🗑️</button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )
@@ -3012,7 +3509,65 @@ const totalServes = tennisSessions.reduce(
   (sum: number, s: any) => sum + (s.serves || 0),
   0
 )
+const getWeekKey = (dateStr: string) => {
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return null
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+  const monday = new Date(d)
+  monday.setDate(diff)
+  return monday.toISOString().split('T')[0]
+}
 
+const weeklyBuckets: Record<string, number> = {}
+const today = new Date()
+for (let i = 7; i >= 0; i--) {
+  const d = new Date(today)
+  d.setDate(d.getDate() - i * 7)
+  const key = getWeekKey(d.toISOString())
+  if (key) weeklyBuckets[key] = 0
+}
+
+allLoggedSessions.forEach((s: any) => {
+  const dateStr = s.date || s.created_at?.split('T')[0]
+  if (!dateStr) return
+  const key = getWeekKey(dateStr)
+  if (key && key in weeklyBuckets) {
+    weeklyBuckets[key]++
+  }
+})
+
+const weeklyChartData = Object.entries(weeklyBuckets).map(([week, count]) => ({ week, count }))
+const maxWeeklyCount = Math.max(...weeklyChartData.map(w => w.count), 1)
+
+const dailyBuckets: Record<string, number> = {}
+const daysToShow = 70
+for (let i = daysToShow - 1; i >= 0; i--) {
+  const d = new Date()
+  d.setDate(d.getDate() - i)
+  const key = d.toISOString().split('T')[0]
+  dailyBuckets[key] = 0
+}
+
+allLoggedSessions.forEach((s: any) => {
+  const dateStr = s.date || s.created_at?.split('T')[0]
+  if (dateStr && dateStr in dailyBuckets) {
+    dailyBuckets[dateStr]++
+  }
+})
+
+const heatmapDays = Object.entries(dailyBuckets).map(([date, count]) => ({ date, count }))
+const heatmapWeeks: { date: string, count: number }[][] = []
+for (let i = 0; i < heatmapDays.length; i += 7) {
+  heatmapWeeks.push(heatmapDays.slice(i, i + 7))
+}
+
+const getHeatColor = (count: number) => {
+  if (count === 0) return '#1e1e30'
+  if (count === 1) return '#a855f750'
+  if (count === 2) return '#a855f790'
+  return '#a855f7'
+}
 const sportsUsed =
   (tennisSessions.length > 0 ? 1 : 0) +
   (runningSessions.length > 0 ? 1 : 0) +
@@ -3032,6 +3587,7 @@ const achievements = [
     earned: tennisSessions.length >= 1,
     color: '#eab308'
   },
+  { title: 'Welcome to SportSync', emoji: '🏅', color: '#a855f7', earned: true },
   {
     title: '100 Serves',
     desc: 'Log 100 serves total',
@@ -3441,6 +3997,99 @@ const [activeTab, setActiveTab] = useState<'activity' | 'achievements' | 'settin
     ))}
   </div>
 </div>
+
+        {/* Weekly Activity Chart */}
+        <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: '800' }}>Sessions Per Week</div>
+              <div style={{ color: '#666', fontSize: '11px', marginTop: '2px' }}>Last 8 weeks, all sports</div>
+            </div>
+            <div style={{ fontSize: '20px' }}>📈</div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '110px' }}>
+            {weeklyChartData.map((w, i) => {
+              const isCurrentWeek = i === weeklyChartData.length - 1
+              const heightPct = Math.max((w.count / maxWeeklyCount) * 100, w.count > 0 ? 8 : 3)
+              return (
+                <div key={w.week} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', height: '100%', justifyContent: 'flex-end' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: w.count > 0 ? (isCurrentWeek ? '#a855f7' : '#888') : '#333' }}>
+                    {w.count > 0 ? w.count : ''}
+                  </div>
+                  <div
+                    style={{
+                      width: '100%',
+                      maxWidth: '28px',
+                      height: `${heightPct}%`,
+                      minHeight: '4px',
+                      borderRadius: '8px 8px 4px 4px',
+                      background: isCurrentWeek
+                        ? 'linear-gradient(180deg, #a855f7, #06b6d4)'
+                        : w.count > 0
+                          ? 'linear-gradient(180deg, #a855f750, #06b6d440)'
+                          : '#1e1e30',
+                      boxShadow: isCurrentWeek ? '0 0 12px #a855f760' : 'none',
+                      transition: 'height 0.3s ease',
+                    }}
+                  />
+                </div>
+              )
+            })}
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+            {weeklyChartData.map((w, i) => {
+              const d = new Date(w.week)
+              const label = i === weeklyChartData.length - 1 ? 'This wk' : `${d.getDate()}/${d.getMonth() + 1}`
+              return (
+                <div key={w.week} style={{ flex: 1, textAlign: 'center', fontSize: '9px', color: '#444', fontWeight: '600' }}>
+                  {label}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Activity Heatmap */}
+        <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: '800' }}>Activity Heatmap</div>
+              <div style={{ color: '#666', fontSize: '11px', marginTop: '2px' }}>Last 10 weeks</div>
+            </div>
+            <div style={{ fontSize: '20px' }}>🔥</div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {heatmapWeeks.map((week, wi) => (
+              <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {week.map((day) => (
+                  <div
+                    key={day.date}
+                    title={`${day.date}: ${day.count} session${day.count !== 1 ? 's' : ''}`}
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '3px',
+                      background: getHeatColor(day.count),
+                      flexShrink: 0,
+                    }}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '14px', justifyContent: 'flex-end' }}>
+            <span style={{ fontSize: '10px', color: '#555' }}>Less</span>
+            {[0, 1, 2, 3].map((c) => (
+              <div key={c} style={{ width: '10px', height: '10px', borderRadius: '2px', background: getHeatColor(c) }} />
+            ))}
+            <span style={{ fontSize: '10px', color: '#555' }}>More</span>
+          </div>
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
           {[
   {
@@ -4271,7 +4920,7 @@ function SuggestedWorkouts({ setActiveNav }: { setActiveNav: (nav: string) => vo
     </div>
   )
 }
-function FootballStats({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
+function FootballStats({ setActiveNav, footballSessions }: any) {
   const [tab, setTab] = useState<'matches' | 'training' | 'overall'>('overall')
 
   const matchStats = {
@@ -4307,6 +4956,49 @@ function FootballStats({ setActiveNav }: { setActiveNav: (nav: string) => void }
   const formColor: Record<string, string> = { win: '#22c55e', loss: '#ef4444', draw: '#f59e0b' }
   const formLabel: Record<string, string> = { win: 'W', loss: 'L', draw: 'D' }
 
+  const matches = footballSessions.filter((s: any) => s.session_type === 'Match' || s.sessionType === 'Match')
+
+const totalGoals = footballSessions.reduce((sum: number, s: any) => sum + (s.goals || 0), 0)
+const totalAssists = footballSessions.reduce((sum: number, s: any) => sum + (s.assists || 0), 0)
+const totalShots = footballSessions.reduce((sum: number, s: any) => sum + (s.shots || 0), 0)
+const totalOnTarget = footballSessions.reduce((sum: number, s: any) => sum + (s.shots_on_target || s.shotsOnTarget || 0), 0)
+const totalKeyPasses = footballSessions.reduce((sum: number, s: any) => sum + (s.key_passes || s.keyPasses || 0), 0)
+
+const shotAccuracy = totalShots > 0 ? Math.round((totalOnTarget / totalShots) * 100) : 0
+const goalConversion = totalShots > 0 ? Math.round((totalGoals / totalShots) * 100) : 0
+
+const averageRating = matches.length > 0
+  ? (matches.reduce((sum: number, s: any) => sum + (s.rating || 0), 0) / matches.length).toFixed(1)
+  : '0.0'
+
+const wins = matches.filter((s: any) => s.result === 'Win').length
+const winRate = matches.length > 0 ? Math.round((wins / matches.length) * 100) : 0
+const recentMatches = matches.slice(0, 5)
+
+const positionStats = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward'].map((pos) => {
+  const posMatches = matches.filter((s: any) => s.position === pos)
+  const posGoals = posMatches.reduce((sum: number, s: any) => sum + (s.goals || 0), 0)
+  const posAssists = posMatches.reduce((sum: number, s: any) => sum + (s.assists || 0), 0)
+  const posRating = posMatches.length > 0
+    ? (posMatches.reduce((sum: number, s: any) => sum + (s.rating || 0), 0) / posMatches.length).toFixed(1)
+    : '0.0'
+
+  return {
+    pos,
+    matches: posMatches.length,
+    goals: posGoals,
+    assists: posAssists,
+    rating: posRating
+  }
+}).filter((p) => p.matches > 0)
+
+const bestRating = matches.length > 0 ? Math.max(...matches.map((s: any) => s.rating || 0)) : 0
+const mostGoals = matches.length > 0 ? Math.max(...matches.map((s: any) => s.goals || 0)) : 0
+const mostAssists = matches.length > 0 ? Math.max(...matches.map((s: any) => s.assists || 0)) : 0
+const mostShots = matches.length > 0 ? Math.max(...matches.map((s: any) => s.shots || 0)) : 0
+const bestPassing = matches.length > 0 ? Math.max(...matches.map((s: any) => s.pass_accuracy || 0)) : 0
+const mostKeyPasses = matches.length > 0 ? Math.max(...matches.map((s: any) => s.key_passes || 0)) : 0
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0f', color: 'white', fontFamily: 'system-ui, sans-serif', maxWidth: '430px', margin: '0 auto' }}>
       <div style={{ position: 'fixed', top: '-100px', right: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -4315,6 +5007,47 @@ function FootballStats({ setActiveNav }: { setActiveNav: (nav: string) => void }
         <button onClick={() => setActiveNav('football-hub')} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '14px', fontWeight: '600', cursor: 'pointer', padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}>← Back</button>
         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px' }}>My Stats</h1>
         <p style={{ color: '#666', fontSize: '14px', margin: '0 0 20px' }}>Your football performance data</p>
+
+        <div style={{
+  background: 'linear-gradient(135deg, #13131f, #10101a)',
+  border: '1px solid #22c55e25',
+  borderLeft: '4px solid #22c55e',
+  borderRadius: '20px',
+  padding: '18px',
+  marginBottom: '22px'
+}}>
+  <div style={{ color: '#22c55e', fontSize: '12px', fontWeight: '900', marginBottom: '14px' }}>
+    MATCH ANALYTICS
+  </div>
+
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+    {[
+      { label: 'Matches', value: matches.length, color: '#22c55e' },
+      { label: 'Avg Rating', value: averageRating, color: '#eab308' },
+      { label: 'Shot Acc.', value: `${shotAccuracy}%`, color: '#06b6d4' },
+      { label: 'Win Rate', value: `${winRate}%`, color: '#a855f7' },
+      { label: 'Goals', value: totalGoals, color: '#22c55e' },
+      { label: 'Assists', value: totalAssists, color: '#06b6d4' },
+      { label: 'Key Passes', value: totalKeyPasses, color: '#f59e0b' },
+      { label: 'Conversion', value: `${goalConversion}%`, color: '#ef4444' },
+    ].map((stat) => (
+      <div key={stat.label} style={{
+        background: '#0a0a0f',
+        border: `1px solid ${stat.color}25`,
+        borderRadius: '14px',
+        padding: '14px',
+        textAlign: 'center'
+      }}>
+        <div style={{ color: stat.color, fontSize: '22px', fontWeight: '900' }}>
+          {stat.value}
+        </div>
+        <div style={{ color: '#666', fontSize: '10px', fontWeight: '800', marginTop: '4px' }}>
+          {stat.label}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
         {/* Form Strip */}
         <div style={{ background: '#13131f', border: '1px solid #1e1e30', borderRadius: '14px', padding: '14px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -7484,6 +8217,315 @@ function TrackPage({ setActiveNav, footballSessions, workoutLogs, tennisSessions
     </div>
   )
 }
+function AnalyticsDashboard({
+  setActiveNav,
+  footballSessions,
+  tennisSessions,
+  runningSessions,
+  swimmingSessions,
+  basketballSessions,
+  boxingSessions,
+  cyclingSessions,
+  golfSessions,
+  rugbySessions,
+  cricketSessions
+}: any) {
+  const allSessions = [
+    ...footballSessions.map((s: any) => ({ ...s, sport: 'Football', color: '#22c55e', emoji: '⚽', date: s.date || s.created_at?.split('T')[0] })),
+    ...tennisSessions.map((s: any) => ({ ...s, sport: 'Tennis', color: '#eab308', emoji: '🎾', date: s.date || s.created_at?.split('T')[0] })),
+    ...runningSessions.map((s: any) => ({ ...s, sport: 'Running', color: '#06b6d4', emoji: '🏃', date: s.date || s.created_at?.split('T')[0] })),
+    ...swimmingSessions.map((s: any) => ({ ...s, sport: 'Swimming', color: '#3b82f6', emoji: '🏊', date: s.date || s.created_at?.split('T')[0] })),
+    ...basketballSessions.map((s: any) => ({ ...s, sport: 'Basketball', color: '#f97316', emoji: '🏀', date: s.date || s.created_at?.split('T')[0] })),
+    ...boxingSessions.map((s: any) => ({ ...s, sport: 'Boxing', color: '#ef4444', emoji: '🥊', date: s.date || s.created_at?.split('T')[0] })),
+    ...cyclingSessions.map((s: any) => ({ ...s, sport: 'Cycling', color: '#10b981', emoji: '🚴', date: s.date || s.created_at?.split('T')[0] })),
+    ...golfSessions.map((s: any) => ({ ...s, sport: 'Golf', color: '#84cc16', emoji: '⛳', date: s.date || s.created_at?.split('T')[0] })),
+    ...rugbySessions.map((s: any) => ({ ...s, sport: 'Rugby', color: '#f59e0b', emoji: '🏉', date: s.date || s.created_at?.split('T')[0] })),
+    ...cricketSessions.map((s: any) => ({ ...s, sport: 'Cricket', color: '#06b6d4', emoji: '🏏', date: s.date || s.created_at?.split('T')[0] })),
+  ]
+
+  const today = new Date()
+  const weekAgo = new Date()
+  weekAgo.setDate(today.getDate() - 7)
+
+  const thisWeek = allSessions.filter((s: any) => s.date && new Date(s.date) >= weekAgo)
+
+  const totalDistance =
+    runningSessions.reduce((sum: number, s: any) => sum + (s.distance || 0), 0) +
+    cyclingSessions.reduce((sum: number, s: any) => sum + (s.distance || 0), 0) +
+    swimmingSessions.reduce((sum: number, s: any) => sum + ((s.distance || 0) / 1000), 0)
+
+  const sportCounts = [
+    { sport: 'Football', emoji: '⚽', color: '#22c55e', count: footballSessions.length },
+    { sport: 'Running', emoji: '🏃', color: '#06b6d4', count: runningSessions.length },
+    { sport: 'Cycling', emoji: '🚴', color: '#10b981', count: cyclingSessions.length },
+    { sport: 'Boxing', emoji: '🥊', color: '#ef4444', count: boxingSessions.length },
+    { sport: 'Basketball', emoji: '🏀', color: '#f97316', count: basketballSessions.length },
+    { sport: 'Tennis', emoji: '🎾', color: '#eab308', count: tennisSessions.length },
+    { sport: 'Swimming', emoji: '🏊', color: '#3b82f6', count: swimmingSessions.length },
+    { sport: 'Golf', emoji: '⛳', color: '#84cc16', count: golfSessions.length },
+    { sport: 'Rugby', emoji: '🏉', color: '#f59e0b', count: rugbySessions.length },
+    { sport: 'Cricket', emoji: '🏏', color: '#06b6d4', count: cricketSessions.length },
+  ].filter(s => s.count > 0)
+
+  const maxCount = Math.max(...sportCounts.map(s => s.count), 1)
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: 'white', maxWidth: '430px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('home')} style={{ background: 'none', border: 'none', color: '#a855f7', fontWeight: '800', marginBottom: '18px' }}>
+          ← Back
+        </button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Analytics</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>Your training overview across every sport</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '22px' }}>
+          {[
+            { label: 'Total Sessions', value: allSessions.length, emoji: '🔥', color: '#a855f7' },
+            { label: 'This Week', value: thisWeek.length, emoji: '📅', color: '#06b6d4' },
+            { label: 'Sports Used', value: sportCounts.length, emoji: '🏅', color: '#22c55e' },
+            { label: 'Distance', value: `${totalDistance.toFixed(1)}km`, emoji: '📍', color: '#f97316' },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: '#13131f', border: `1px solid ${stat.color}25`, borderRadius: '18px', padding: '16px' }}>
+              <div style={{ fontSize: '24px' }}>{stat.emoji}</div>
+              <div style={{ color: stat.color, fontSize: '24px', fontWeight: '900', marginTop: '8px' }}>{stat.value}</div>
+              <div style={{ color: '#666', fontSize: '11px', fontWeight: '700', marginTop: '3px' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #2a2a40', borderRadius: '20px', padding: '18px', marginBottom: '22px' }}>
+          <div style={{ fontSize: '16px', fontWeight: '900', marginBottom: '14px' }}>Sport Breakdown</div>
+
+          {sportCounts.map((item) => (
+            <div key={item.sport} style={{ marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '13px', fontWeight: '800' }}>{item.emoji} {item.sport}</span>
+                <span style={{ color: item.color, fontSize: '12px', fontWeight: '900' }}>{item.count}</span>
+              </div>
+              <div style={{ height: '8px', background: '#0a0a0f', borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ width: `${(item.count / maxCount) * 100}%`, height: '100%', background: item.color }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: '#13131f', border: '1px solid #2a2a40', borderRadius: '20px', padding: '18px' }}>
+          <div style={{ fontSize: '16px', fontWeight: '900', marginBottom: '12px' }}>Smart Insight</div>
+          <div style={{ color: '#aaa', fontSize: '14px', lineHeight: '1.5' }}>
+            {thisWeek.length === 0
+              ? 'You have not logged any sessions this week yet. Start with one easy session to build momentum.'
+              : thisWeek.length >= 5
+                ? 'Strong week. You are training consistently across your sports.'
+                : `You have logged ${thisWeek.length} session${thisWeek.length === 1 ? '' : 's'} this week. Try reaching 5 for a strong weekly target.`}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SessionDetailPage({ setActiveNav, session }: any) {
+  if (!session) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a0a0f', color: 'white', maxWidth: '430px', margin: '0 auto', padding: '50px 24px' }}>
+        <button onClick={() => setActiveNav('recent-activity')} style={{ background: 'none', border: 'none', color: '#a855f7', fontWeight: '800', marginBottom: '20px' }}>
+          ← Back
+        </button>
+        <h1>No session selected</h1>
+      </div>
+    )
+  }
+
+  const extraStats = [
+    ['Duration', session.duration ? `${session.duration} mins` : null],
+    ['Distance', session.distance ? `${session.distance}${session.sport === 'Swimming' ? 'm' : 'km'}` : null],
+    ['Speed', session.avgSpeed ? `${session.avgSpeed}km/h` : null],
+    ['Elevation', session.elevation ? `${session.elevation}m` : null],
+    ['Rounds', session.rounds ? `${session.rounds}` : null],
+    ['Goals', session.goals ? `${session.goals}` : null],
+    ['Assists', session.assists ? `${session.assists}` : null],
+    ['Points', session.points ? `${session.points}` : null],
+    ['Runs', session.runs ? `${session.runs}` : null],
+    ['Wickets', session.wickets ? `${session.wickets}` : null],
+    ['Score', session.score ? `${session.score}` : null],
+    ['Effort', session.effort || session.intensity ? `${session.effort || session.intensity}/10` : null],
+  ].filter((s) => s[1])
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: 'white', maxWidth: '430px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('recent-activity')} style={{ background: 'none', border: 'none', color: session.color || '#a855f7', fontWeight: '800', marginBottom: '20px' }}>
+          ← Back
+        </button>
+
+        <div style={{ background: '#13131f', border: `1px solid ${session.color}35`, borderLeft: `4px solid ${session.color}`, borderRadius: '22px', padding: '22px', marginBottom: '20px' }}>
+          <div style={{ width: '64px', height: '64px', borderRadius: '18px', background: `${session.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', marginBottom: '18px' }}>
+            {session.emoji}
+          </div>
+
+          <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px' }}>{session.title}</h1>
+          <div style={{ color: session.color, fontSize: '14px', fontWeight: '900', marginBottom: '8px' }}>{session.sport}</div>
+          <div style={{ color: '#666', fontSize: '13px' }}>{session.date}</div>
+        </div>
+
+        {extraStats.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+            {extraStats.map(([label, value]: any) => (
+              <div key={label} style={{ background: '#13131f', border: `1px solid ${session.color}25`, borderRadius: '16px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ color: session.color, fontSize: '20px', fontWeight: '900' }}>{value}</div>
+                <div style={{ color: '#666', fontSize: '11px', fontWeight: '700', marginTop: '4px' }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ background: '#13131f', border: '1px solid #2a2a40', borderRadius: '18px', padding: '18px' }}>
+          <div style={{ fontSize: '15px', fontWeight: '900', marginBottom: '8px' }}>Session Notes</div>
+          <div style={{ color: '#aaa', fontSize: '14px', lineHeight: '1.5' }}>
+            {session.notes || session.detail || 'No notes added for this session.'}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function RecentActivityPage({
+  setActiveNav,
+  setSelectedSession,
+  footballSessions,
+  tennisSessions,
+  runningSessions,
+  swimmingSessions,
+  basketballSessions,
+  boxingSessions,
+  cyclingSessions,
+  golfSessions,
+  rugbySessions,
+  cricketSessions
+}: any) {
+  const activity = [
+    ...footballSessions.map((s: any) => ({
+      sport: 'Football', emoji: '⚽', color: '#22c55e',
+      title: s.session_type || s.sessionType || 'Football Session',
+      detail: `${s.duration || 0} mins · ${s.goals || 0} goals · ${s.assists || 0} assists`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'football-hub'
+    })),
+    ...tennisSessions.map((s: any) => ({
+      sport: 'Tennis', emoji: '🎾', color: '#eab308',
+      title: s.sessionType || 'Tennis Session',
+      detail: `${s.duration || 0} mins · ${s.focus || 'General'}`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'tennis-hub'
+    })),
+    ...runningSessions.map((s: any) => ({
+      sport: 'Running', emoji: '🏃', color: '#06b6d4',
+      title: s.type || 'Run',
+      detail: `${s.distance || 0}km · ${s.duration || 0} mins`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'running-hub'
+    })),
+    ...swimmingSessions.map((s: any) => ({
+      sport: 'Swimming', emoji: '🏊', color: '#3b82f6',
+      title: s.stroke || 'Swim',
+      detail: `${s.distance || 0}m · ${s.duration || 0} mins`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'swimming-hub'
+    })),
+    ...basketballSessions.map((s: any) => ({
+      sport: 'Basketball', emoji: '🏀', color: '#f97316',
+      title: s.sessionType || 'Basketball Session',
+      detail: `${s.duration || 0} mins · ${s.focus || 'Training'}`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'basketball-hub'
+    })),
+    ...boxingSessions.map((s: any) => ({
+      sport: 'Boxing', emoji: '🥊', color: '#ef4444',
+      title: s.sessionType || 'Boxing Session',
+      detail: `${s.duration || 0} mins · ${s.rounds || 0} rounds`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'boxing-hub'
+    })),
+    ...cyclingSessions.map((s: any) => ({
+      sport: 'Cycling', emoji: '🚴', color: '#10b981',
+      title: s.rideType || 'Ride',
+      detail: `${s.distance || 0}km · ${s.duration || 0} mins · ${s.avgSpeed || 0}km/h`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'cycling-hub'
+    })),
+    ...golfSessions.map((s: any) => ({
+      sport: 'Golf', emoji: '⛳', color: '#84cc16',
+      title: s.session_type || 'Golf Session',
+      detail: `${s.holes || 0} holes · score ${s.score || '-'}`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'golf-hub'
+    })),
+    ...rugbySessions.map((s: any) => ({
+      sport: 'Rugby', emoji: '🏉', color: '#f59e0b',
+      title: s.session_type || 'Rugby Session',
+      detail: `${s.duration || 0} mins · ${s.tries || 0} tries`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'rugby-hub'
+    })),
+    ...cricketSessions.map((s: any) => ({
+      sport: 'Cricket', emoji: '🏏', color: '#06b6d4',
+      title: s.session_type || 'Cricket Session',
+      detail: `${s.runs || 0} runs · ${s.wickets || 0} wickets`,
+      date: s.date || s.created_at?.split('T')[0] || 'Recent',
+      nav: 'cricket-hub'
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: 'white', maxWidth: '430px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ padding: '50px 24px 90px' }}>
+        <button onClick={() => setActiveNav('home')} style={{ background: 'none', border: 'none', color: '#a855f7', fontWeight: '800', marginBottom: '18px' }}>
+          ← Back
+        </button>
+
+        <h1 style={{ fontSize: '30px', fontWeight: '900', margin: '0 0 6px' }}>Recent Activity</h1>
+        <p style={{ color: '#666', fontSize: '14px', margin: '0 0 24px' }}>All your latest logged sessions</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {activity.map((item: any, i: number) => (
+            <div
+              key={i}
+              onClick={() => {
+  setSelectedSession(item)
+  setActiveNav('session-detail')
+}}
+              style={{
+                background: '#13131f',
+                border: `1px solid ${item.color}25`,
+                borderLeft: `4px solid ${item.color}`,
+                borderRadius: '18px',
+                padding: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                cursor: 'pointer'
+              }}
+            >
+              <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                {item.emoji}
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '900', fontSize: '15px' }}>{item.sport}</div>
+                <div style={{ color: '#aaa', fontSize: '13px', marginTop: '2px' }}>{item.title}</div>
+                <div style={{ color: '#666', fontSize: '12px', marginTop: '3px' }}>{item.detail}</div>
+              </div>
+
+              <div style={{ color: item.color, fontSize: '20px' }}>›</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function SportsPage({ setActiveNav }: { setActiveNav: (nav: string) => void }) {
   const [activeNavLocal, setActiveNavLocal] = useState('sports')
@@ -7639,6 +8681,25 @@ export default function Home() {
   })
   const [showGoalSetter, setShowGoalSetter] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+const [unreadLikes, setUnreadLikes] = useState(0)
+
+useEffect(() => {
+  const checkUnreadLikes = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data: myPosts } = await supabase.from('posts').select('likes').eq('user_id', session.user.id)
+    if (!myPosts) return
+
+    const totalLikes = myPosts.reduce((sum: number, p: any) => sum + (p.likes || 0), 0)
+    const lastSeenLikes = parseInt(localStorage.getItem('lastSeenLikes') || '0')
+
+    setUnreadLikes(Math.max(0, totalLikes - lastSeenLikes))
+  }
+  checkUnreadLikes()
+  const interval = setInterval(checkUnreadLikes, 15000)
+  return () => clearInterval(interval)
+}, [])
 
 const triggerConfetti = () => {
   setShowConfetti(true)
@@ -7651,6 +8712,7 @@ const [activeSport, setActiveSport] = useState<string | null>(null);
 const [selectedBasketballCategory, setSelectedBasketballCategory] = useState('')
 const [selectedBoxingCategory, setSelectedBoxingCategory] = useState('')
 const [selectedCyclingCategory, setSelectedCyclingCategory] = useState('')
+const [selectedSession, setSelectedSession] = useState<any>(null)
 const [user, setUser] = useState<any>(null)
 const [authLoading, setAuthLoading] = useState(true)
 const [footballSessions, setFootballSessions] = useState<any[]>([])
@@ -8149,6 +9211,7 @@ if (activeNav === 'running-stats') {
     <RunningStats
       setActiveNav={setActiveNav}
       runningSessions={runningSessions}
+      setRunningSessions={setRunningSessions}
       runningPRs={runningPRs}
     />
   )
@@ -8184,7 +9247,7 @@ if (activeNav === 'suggested-tennis-drills') {
   return <SuggestedTennisDrills setActiveNav={setActiveNav} />
 }
 if (activeNav === 'tennis-stats') {
-  return <TennisStats setActiveNav={setActiveNav} tennisSessions={tennisSessions} tennisResults={tennisResults} />
+  return <TennisStats setActiveNav={setActiveNav} tennisSessions={tennisSessions} setTennisSessions={setTennisSessions} tennisResults={tennisResults} />
 }
 if (activeNav === 'log-workout') {
   return <LogWorkout setActiveNav={setActiveNav} />
@@ -8194,13 +9257,57 @@ if (activeNav === 'personal-records') {
 }
 
 if (activeNav === 'my-stats') {
-  return <FootballStats setActiveNav={setActiveNav} />
+  return <FootballStats setActiveNav={setActiveNav} footballSessions={footballSessions} />
 }
 if (activeNav === 'suggested-workouts') {
   return <SuggestedWorkouts setActiveNav={setActiveNav} />
 }
 if (activeNav === 'gym-stats') {
   return <GymStats setActiveNav={setActiveNav} />
+}
+if (activeNav === 'session-detail') {
+  return (
+    <SessionDetailPage
+      setActiveNav={setActiveNav}
+      session={selectedSession}
+    />
+  )
+}
+
+if (activeNav === 'recent-activity') {
+  return (
+    <RecentActivityPage
+      setActiveNav={setActiveNav}
+      setSelectedSession={setSelectedSession}
+      footballSessions={footballSessions}
+      tennisSessions={tennisSessions}
+      runningSessions={runningSessions}
+      swimmingSessions={swimmingSessions}
+      basketballSessions={basketballSessions}
+      boxingSessions={boxingSessions}
+      cyclingSessions={cyclingSessions}
+      golfSessions={golfSessions}
+      rugbySessions={rugbySessions}
+      cricketSessions={cricketSessions}
+    />
+  )
+}
+if (activeNav === 'analytics') {
+  return (
+    <AnalyticsDashboard
+      setActiveNav={setActiveNav}
+      footballSessions={footballSessions}
+      tennisSessions={tennisSessions}
+      runningSessions={runningSessions}
+      swimmingSessions={swimmingSessions}
+      basketballSessions={basketballSessions}
+      boxingSessions={boxingSessions}
+      cyclingSessions={cyclingSessions}
+      golfSessions={golfSessions}
+      rugbySessions={rugbySessions}
+      cricketSessions={cricketSessions}
+    />
+  )
 }
 if (activeNav === 'social') {
   return <SocialPage setActiveNav={setActiveNav} socialPosts={socialPosts} user={user} />
@@ -8378,17 +9485,8 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
           </div>
         </div>
 
-        {/* This Week Sports */}
-        <div style={{ padding: '0 24px 24px' }}>
-          <h2
-            style={{
-              fontSize: '18px',
-              fontWeight: '700',
-              marginBottom: '14px',
-            }}
-          >
-            This Week
-            {(() => {
+        
+        {(() => {
   const allAchievements = [
     { title: 'First Tennis Session', emoji: '🎾', color: '#eab308', earned: tennisSessions.length >= 1 },
     { title: 'First Run', emoji: '🏃', color: '#06b6d4', earned: runningSessions.length >= 1 },
@@ -8399,6 +9497,7 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
     { title: 'First Round of Golf', emoji: '⛳', color: '#84cc16', earned: golfSessions.filter((s: any) => s.session_type === 'Round').length >= 1 },
     { title: 'First Rugby Session', emoji: '🏉', color: '#f59e0b', earned: rugbySessions.length >= 1 },
     { title: 'First Cricket Session', emoji: '🏏', color: '#06b6d4', earned: cricketSessions.length >= 1 },
+    { title: 'Welcome to SportSync', emoji: '🏅', color: '#a855f7', earned: true },
     { title: 'Multi-Sport Athlete', emoji: '🏅', color: '#22c55e', earned: [tennisSessions, runningSessions, swimmingSessions, basketballSessions, boxingSessions, cyclingSessions, golfSessions, rugbySessions, cricketSessions].filter(s => s.length > 0).length >= 3 },
     { title: '50km Runner', emoji: '🛣️', color: '#06b6d4', earned: runningSessions.reduce((sum: number, r: any) => sum + (r.distance || 0), 0) >= 50 },
     { title: '25 Sessions', emoji: '🔥', color: '#ef4444', earned: (tennisSessions.length + runningSessions.length + swimmingSessions.length + basketballSessions.length + boxingSessions.length + cyclingSessions.length + golfSessions.length + rugbySessions.length + cricketSessions.length + footballSessions.length) >= 25 },
@@ -8410,7 +9509,7 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
   const latest = allAchievements.filter(a => a.earned).pop()
   if (!latest) return null
   return (
-    <div style={{ margin: '20px 0 0' }}>
+    <div style={{ padding: '0 24px', marginBottom: '24px' }}>
       <h2 style={{ fontSize: '16px', fontWeight: '800', margin: '0 0 12px' }}>Latest Achievement</h2>
       <div onClick={() => setActiveNav('profile')} onTouchStart={() => setActiveNav('profile')} style={{ background: '#13131f', border: `1px solid ${latest.color}40`, borderLeft: `4px solid ${latest.color}`, borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', boxShadow: `0 0 20px ${latest.color}20` }}>
         <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${latest.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', flexShrink: 0 }}>{latest.emoji}</div>
@@ -8423,6 +9522,198 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
     </div>
   )
 })()}
+{/* Analytics Dashboard Preview */}
+<div style={{ padding: '0 24px', marginBottom: '24px' }}>
+  <div
+    onClick={() => setActiveNav('analytics')}
+    onTouchStart={() => setActiveNav('analytics')}
+    style={{
+      background: 'linear-gradient(135deg, #13131f, #17172a)',
+      border: '1px solid #2a2a40',
+      borderLeft: '4px solid #a855f7',
+      borderRadius: '20px',
+      padding: '20px',
+      cursor: 'pointer',
+      boxShadow: '0 0 25px rgba(168,85,247,0.12)'
+    }}
+  >
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+        <div style={{ fontSize: '18px', fontWeight: '900' }}>Analytics Dashboard</div>
+        <div style={{ color: '#666', fontSize: '13px', marginTop: '4px' }}>
+          View weekly trends, totals and performance insights
+        </div>
+      </div>
+      <div style={{ fontSize: '30px' }}>📊</div>
+    </div>
+
+    <div style={{ color: '#a855f7', fontSize: '12px', fontWeight: '800', marginTop: '14px' }}>
+      Open dashboard ›
+    </div>
+  </div>
+</div>
+
+{/* Recent Activity Preview */}
+{(() => {
+  const totalRecent =
+    footballSessions.length +
+    tennisSessions.length +
+    runningSessions.length +
+    swimmingSessions.length +
+    basketballSessions.length +
+    boxingSessions.length +
+    cyclingSessions.length +
+    golfSessions.length +
+    rugbySessions.length +
+    cricketSessions.length
+
+  if (totalRecent === 0) return null
+
+  return (
+    <div style={{ padding: '0 24px', marginBottom: '24px' }}>
+      <div
+        onClick={() => setActiveNav('recent-activity')}
+        onTouchStart={() => setActiveNav('recent-activity')}
+        style={{
+          background: 'linear-gradient(135deg, #13131f, #17172a)',
+          border: '1px solid #2a2a40',
+          borderRadius: '20px',
+          padding: '20px',
+          cursor: 'pointer',
+          boxShadow: '0 0 25px rgba(168,85,247,0.12)'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: '18px', fontWeight: '900' }}>Recent Activity</div>
+            <div style={{ color: '#666', fontSize: '13px', marginTop: '4px' }}>
+              View your latest logged sessions
+            </div>
+          </div>
+
+          <div style={{ fontSize: '28px' }}>📋</div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+          {['⚽', '🏃', '🥊', '🚴', '🏀'].map((emoji, i) => (
+            <div key={i} style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
+              background: '#0a0a0f',
+              border: '1px solid #2a2a40',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '17px'
+            }}>
+              {emoji}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ color: '#a855f7', fontSize: '12px', fontWeight: '800', marginTop: '14px' }}>
+          {totalRecent} total sessions logged ›
+        </div>
+      </div>
+    </div>
+  )
+})()}
+
+        {/* Weekly Challenges */}
+        {(() => {
+          const allSessions = [
+            ...tennisSessions, ...runningSessions, ...swimmingSessions,
+            ...basketballSessions, ...boxingSessions, ...cyclingSessions,
+            ...golfSessions, ...rugbySessions, ...cricketSessions, ...footballSessions
+          ]
+          const thisWeekSessions = allSessions.filter((s: any) => {
+            const dateStr = s.date || s.created_at?.split('T')[0]
+            return dateStr && dateStr >= weekStart
+          })
+          const sportsLoggedThisWeek = new Set()
+          if (tennisSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Tennis')
+          if (runningSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Running')
+          if (swimmingSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Swimming')
+          if (basketballSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Basketball')
+          if (boxingSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Boxing')
+          if (cyclingSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Cycling')
+          if (golfSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Golf')
+          if (rugbySessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Rugby')
+          if (cricketSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Cricket')
+          if (footballSessions.some((s: any) => (s.date || '') >= weekStart)) sportsLoggedThisWeek.add('Football')
+
+          const longestRunThisWeek = runningSessions
+            .filter((s: any) => (s.date || '') >= weekStart)
+            .reduce((max: number, s: any) => Math.max(max, s.distance || 0), 0)
+          const bestEverRun = runningSessions.reduce((max: number, s: any) => Math.max(max, s.distance || 0), 0)
+
+          const challenges = [
+            {
+              title: 'Log 3 Sessions',
+              desc: 'Complete any 3 sessions this week',
+              emoji: '🔥',
+              color: '#ef4444',
+              progress: Math.min(thisWeekSessions.length, 3),
+              target: 3,
+            },
+            {
+              title: 'Try a New Sport',
+              desc: 'Log 2 different sports this week',
+              emoji: '🎯',
+              color: '#06b6d4',
+              progress: Math.min(sportsLoggedThisWeek.size, 2),
+              target: 2,
+            },
+            {
+              title: 'Beat Your Best Run',
+              desc: bestEverRun > 0 ? `Run further than ${bestEverRun.toFixed(1)}km` : 'Log a run to set your baseline',
+              emoji: '🏃',
+              color: '#a855f7',
+              progress: longestRunThisWeek > bestEverRun && longestRunThisWeek > 0 ? 1 : 0,
+              target: 1,
+            },
+          ]
+
+          return (
+            <div style={{ padding: '0 24px', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: '800', margin: '0 0 12px' }}>Weekly Challenges</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {challenges.map((c) => {
+                  const complete = c.progress >= c.target
+                  return (
+                    <div key={c.title} style={{ background: '#13131f', border: `1px solid ${complete ? c.color + '50' : '#1e1e30'}`, borderLeft: `4px solid ${complete ? c.color : '#333'}`, borderRadius: '14px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `${c.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, opacity: complete ? 1 : 0.6 }}>
+                        {complete ? '✅' : c.emoji}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: '800', fontSize: '14px' }}>{c.title}</div>
+                        <div style={{ color: '#666', fontSize: '12px', marginTop: '2px' }}>{c.desc}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                          <div style={{ flex: 1, height: '5px', background: '#1e1e30', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ width: `${(c.progress / c.target) * 100}%`, height: '100%', background: c.color, borderRadius: '4px' }} />
+                          </div>
+                          <span style={{ fontSize: '10px', color: c.color, fontWeight: '700' }}>{c.progress}/{c.target}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* This Week Sports */}
+        <div style={{ padding: '0 24px 24px' }}>
+          <h2
+            style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              marginBottom: '14px',
+            }}
+          >
+            This Week
           </h2>
           <div
             style={{
@@ -8574,7 +9865,18 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
         ].map((item) => (
           <button
             key={item.id}
-            onClick={() => setActiveNav(item.id)}
+            onClick={async () => {
+              setActiveNav(item.id)
+              if (item.id === 'social' && unreadLikes > 0) {
+                const { data: { session } } = await supabase.auth.getSession()
+                if (session) {
+                  const { data: myPosts } = await supabase.from('posts').select('likes').eq('user_id', session.user.id)
+                  const totalLikes = (myPosts || []).reduce((sum: number, p: any) => sum + (p.likes || 0), 0)
+                  localStorage.setItem('lastSeenLikes', totalLikes.toString())
+                  setUnreadLikes(0)
+                }
+              }
+            }}
             style={{
               background: 'none',
               border: 'none',
@@ -8584,9 +9886,17 @@ const weeklyProgress = Math.min(Math.round((totalSessions / weeklyGoalTarget) * 
               gap: '4px',
               cursor: 'pointer',
               padding: '4px 12px',
+              position: 'relative',
             }}
           >
-            <span style={{ fontSize: '20px' }}>{item.emoji}</span>
+            <span style={{ fontSize: '20px', position: 'relative' }}>
+              {item.emoji}
+              {item.id === 'social' && unreadLikes > 0 && (
+                <span style={{ position: 'absolute', top: '-4px', right: '-8px', background: '#ef4444', color: 'white', fontSize: '9px', fontWeight: '800', borderRadius: '999px', minWidth: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', boxShadow: '0 0 6px #ef444480' }}>
+                  {unreadLikes > 9 ? '9+' : unreadLikes}
+                </span>
+              )}
+            </span>
             <span
               style={{
                 fontSize: '10px',
