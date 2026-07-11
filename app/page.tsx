@@ -10,6 +10,29 @@ const confettiKeyframes = `@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { o
 const confettiColors = ['#a855f7', '#06b6d4', '#22c55e', '#eab308', '#ef4444', '#f97316', '#3b82f6', '#10b981']
 const theme = (dark: string, light: string) => lightMode ? light : dark
 
+const getStorage = (key: string, fallback: any) => {
+  if (typeof window === 'undefined') return fallback
+  try {
+    const saved = localStorage.getItem(key)
+    return saved ? JSON.parse(saved) : fallback
+  } catch { return fallback }
+}
+
+const setStorage = (key: string, value: any) => {
+  if (typeof window === 'undefined') return
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch {}
+}
+
+const getStorageRaw = (key: string, fallback: string) => {
+  if (typeof window === 'undefined') return fallback
+  try { return localStorage.getItem(key) || fallback } catch { return fallback }
+}
+
+const setStorageRaw = (key: string, value: string) => {
+  if (typeof window === 'undefined') return
+  try { localStorage.setItem(key, value) } catch {}
+}
+
 const supabase = createClient(
   'https://qzmcrjsgitpmntddttfk.supabase.co',
   'sb_publishable_hY5Qxqx6sqFntkDTkr_OoA_HYwe_mDc'
@@ -4574,12 +4597,12 @@ function ProfilePage({ setActiveNav, footballSessions, tennisSessions, runningSe
     localStorage.getItem('userBio') || 'Multi-sport athlete 🎾🏃🏊'
   )
   const [editingBio, setEditingBio] = useState(false)
-  const [distanceUnit, setDistanceUnit] = useState(() => localStorage.getItem('distanceUnit') || 'metric')
-const [weightUnit, setWeightUnit] = useState(() => localStorage.getItem('weightUnit') || 'metric')
-const [pushNotifs, setPushNotifs] = useState(() => localStorage.getItem('pushNotifs') !== 'false')
-const [soundEnabled, setSoundEnabled] = useState(() => localStorage.getItem('soundEnabled') !== 'false')
-const [hapticEnabled, setHapticEnabled] = useState(() => localStorage.getItem('hapticEnabled') !== 'false')
-const [emailReports, setEmailReports] = useState(() => localStorage.getItem('emailReports') === 'true')
+  const [distanceUnit, setDistanceUnit] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('distanceUnit') || 'metric' : 'metric')
+const [weightUnit, setWeightUnit] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('weightUnit') || 'metric' : 'metric')
+const [pushNotifs, setPushNotifs] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('pushNotifs') !== 'false' : true)
+const [soundEnabled, setSoundEnabled] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('soundEnabled') !== 'false' : true)
+const [hapticEnabled, setHapticEnabled] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('hapticEnabled') !== 'false' : true)
+const [emailReports, setEmailReports] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('emailReports') === 'true' : false)
   const [editingPosition, setEditingPosition] = useState(false)
   const [profile, setProfile] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'achievements' | 'settings'>('overview')
@@ -11511,8 +11534,8 @@ const [coachMessages, setCoachMessages] = useState<any[]>(() => {
 })
 const [coachInput, setCoachInput] = useState('')
 const [coachLoading, setCoachLoading] = useState(false)
-  const [soundEnabled, setSoundEnabled] = useState(() => localStorage.getItem('soundEnabled') !== 'false')
-const [hapticEnabled, setHapticEnabled] = useState(() => localStorage.getItem('hapticEnabled') !== 'false')
+  const [soundEnabled, setSoundEnabled] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('soundEnabled') !== 'false' : true)
+const [hapticEnabled, setHapticEnabled] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('hapticEnabled') !== 'false' : true)
   const [dashboardLayout, setDashboardLayout] = useState<string[]>(() => {
     if (typeof window === 'undefined') return ['notifications', 'stats', 'streak', 'challenges', 'goals', 'programs', 'recap', 'weekly', 'workouts']
     const saved = localStorage.getItem('dashboardLayout')
